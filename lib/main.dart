@@ -74,25 +74,25 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     bool usuarioExiste = currentUser != null;
-    print('logged in: ${usuarioExiste}');
+    final ancho_pantalla = MediaQuery.of(context).size.width;
     return Scaffold(
-        appBar: PreferredSize(
-          preferredSize:
-              Size.fromHeight(MediaQuery.of(context).size.width * 0.75),
-          child: SliderImagenesHeader(
-            usuario: usuarioExiste,
-            imagenes: [
-              Image(
-                image: AssetImage('assets/MUJER.jpg'),
-                fit: BoxFit.cover,
-              ),
-              Image(
-                image: AssetImage('assets/hombre2.png'),
-                fit: BoxFit.cover,
-              ),
-            ],
-          ),
+      body: PreferredSize(
+        preferredSize:
+            Size.fromHeight(MediaQuery.of(context).size.width * 0.75),
+        child: SliderImagenesHeader(
+          usuario: usuarioExiste,
+          imagenes: [
+            Image(
+              image: AssetImage('assets/MUJER.jpg'),
+              fit: BoxFit.cover,
+            ),
+            Image(
+              image: AssetImage('assets/hombre2.png'),
+              fit: BoxFit.cover,
+            ),
+          ],
         ),
-        body: Container());
+      ),
+    );
   }
 }

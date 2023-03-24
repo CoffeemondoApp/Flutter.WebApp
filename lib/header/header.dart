@@ -100,14 +100,19 @@ class _HeaderState extends State<Header> {
         style: TextStyle(
             color: Colors.white,
             fontFamily: 'Impact',
-            fontSize: 16,
+            fontSize: 12,
             fontWeight: FontWeight.bold),
       )),
     ));
   }
 
   Widget btnCredenciales() {
-    return (Container(
+    return (GestureDetector(
+      onTap: () {
+        setState(() {
+          openLogin = !openLogin;
+        });
+      },
       child: Container(
           width: MediaQuery.of(context).size.width * 0.25,
           height: MediaQuery.of(context).size.height * 0.03,
@@ -118,7 +123,7 @@ class _HeaderState extends State<Header> {
               style: TextStyle(
                   color: Colors.white,
                   fontFamily: 'Impact',
-                  fontSize: 16,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
@@ -167,14 +172,14 @@ class _HeaderState extends State<Header> {
 
   @override
   Widget build(BuildContext context) {
-    //print("ancho pantalla ${widget.ancho_pantalla}");
+    print("ancho pantalla ${widget.ancho_pantalla}");
     return Column(
       children: [
         Container(
-          height: (widget.ancho_pantalla > 750)
+          height: (widget.ancho_pantalla > 842)
               ? MediaQuery.of(context).size.height * 0.1
               : MediaQuery.of(context).size.width * 0.1,
-          margin: EdgeInsets.only(left: 30, right: 30, top: 50),
+          margin: EdgeInsets.only(left: 20, right: 20, top: 50),
           child: (ClipRect(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
@@ -186,7 +191,7 @@ class _HeaderState extends State<Header> {
                     //color: Colors.blue,
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: (widget.ancho_pantalla > 750)
+                        children: (widget.ancho_pantalla > 842)
                             ? [
                                 btnIndexMenu(),
                                 btnLoginMenu(),

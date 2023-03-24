@@ -67,6 +67,8 @@ class Auth {
 
   // Instancia de google para cerrar sesion
   GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId:
+        '661225577781-bb7mcv23fqfkg5ps1g2gk85pmb08s72e.apps.googleusercontent.com',
     scopes: <String>[
       'email',
       'https://www.googleapis.com/auth/contacts.readonly',

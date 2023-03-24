@@ -77,7 +77,7 @@ class _LoginState extends State<Login> {
 
   var isLogin = false;
 
-  Widget btnIniciarSesion() {
+  Widget btnIniciarSesion(double fontSize) {
     return (Container(
       height: 50,
       width: ancho_items,
@@ -87,7 +87,7 @@ class _LoginState extends State<Login> {
           "Iniciar Sesión",
           style: TextStyle(
             color: Colors.white,
-            fontSize: 20,
+            fontSize: fontSize,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -101,7 +101,7 @@ class _LoginState extends State<Login> {
     ));
   }
 
-  Widget btnIniciarSesionGoogle() {
+  Widget btnIniciarSesionGoogle(double fontSize) {
     return (Container(
       height: 50,
       width: ancho_items,
@@ -113,7 +113,7 @@ class _LoginState extends State<Login> {
           "Iniciar Sesión con Google",
           style: TextStyle(
             color: Colors.white,
-            fontSize: 20,
+            fontSize: fontSize,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -127,7 +127,7 @@ class _LoginState extends State<Login> {
     ));
   }
 
-  Widget btnRegistro() {
+  Widget btnRegistro(double fontSize) {
     return (Container(
       height: 50,
       width: ancho_items,
@@ -137,7 +137,7 @@ class _LoginState extends State<Login> {
           "Soy nuevo",
           style: TextStyle(
             color: colorNaranja,
-            fontSize: 20,
+            fontSize: fontSize,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -152,32 +152,38 @@ class _LoginState extends State<Login> {
     ));
   }
 
-  Widget btnsLogin() {
+  Widget btnsLogin(double fontSize) {
     return (Column(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [btnIniciarSesion(), btnIniciarSesionGoogle(), btnRegistro()],
+      children: [
+        btnIniciarSesion(fontSize),
+        btnIniciarSesionGoogle(fontSize),
+        btnRegistro(fontSize)
+      ],
     ));
   }
 
-  Widget tituloLogin() {
+  Widget tituloLogin(double fontSize) {
     return (Center(
       child: Text(
         "Iniciar Sesión",
         style: TextStyle(
           color: colorNaranja,
-          fontSize: 24,
+          fontSize: fontSize,
           fontWeight: FontWeight.bold,
         ),
       ),
     ));
   }
 
-  Widget textFieldCorreo(TextEditingController controller) {
+  Widget textFieldCorreo(TextEditingController controller, double fontSize) {
     return (TextField(
       controller: controller,
+      style: TextStyle(color: colorNaranja, fontSize: fontSize),
       decoration: InputDecoration(
         hintText: "Correo",
         hintStyle: TextStyle(
+          fontSize: fontSize,
           color: colorNaranja,
         ),
         border: OutlineInputBorder(
@@ -200,13 +206,12 @@ class _LoginState extends State<Login> {
     ));
   }
 
-  Widget textFieldPassword(TextEditingController controller) {
+  Widget textFieldPassword(TextEditingController controller, double fontSize) {
     return TextField(
+      style: TextStyle(color: colorNaranja, fontSize: fontSize),
       decoration: InputDecoration(
         hintText: "Contraseña",
-        hintStyle: TextStyle(
-          color: colorNaranja,
-        ),
+        hintStyle: TextStyle(color: colorNaranja, fontSize: fontSize),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -239,7 +244,8 @@ class _LoginState extends State<Login> {
     ));
   }
 
-  Widget vistaLogin() {
+  Widget vistaLogin(String dispositivo) {
+    var fontSize = dispositivo == "web" ? 24.0 : 16.0;
     return (Container(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -247,7 +253,7 @@ class _LoginState extends State<Login> {
           Container(
             //color: Colors.black,
             height: 50,
-            child: tituloLogin(),
+            child: tituloLogin(fontSize),
           ),
           SizedBox(
             height: 20,
@@ -255,7 +261,7 @@ class _LoginState extends State<Login> {
           Container(
             height: 50,
             width: ancho_login,
-            child: textFieldCorreo(correoController),
+            child: textFieldCorreo(correoController, fontSize),
           ),
           SizedBox(
             height: 20,
@@ -263,12 +269,12 @@ class _LoginState extends State<Login> {
           Container(
               height: 50,
               width: ancho_login,
-              child: textFieldPassword(passwordController)),
+              child: textFieldPassword(passwordController, fontSize)),
           SizedBox(
             height: 20,
           ),
           Container(
-            child: btnsLogin(),
+            child: btnsLogin(fontSize),
             //color: Colors.black,
             height: 200,
             width: 330,
@@ -278,8 +284,46 @@ class _LoginState extends State<Login> {
     ));
   }
 
+  Widget loginWeb() {
+    return (Dialog(
+      backgroundColor: Color.fromARGB(0, 0, 0, 0),
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.5,
+        width: 780,
+        decoration: BoxDecoration(
+          color: colorScaffold,
+          borderRadius: BorderRadius.circular(40),
+        ),
+        child: Row(
+          children: [
+            sliderLogo(),
+            Container(
+              child: vistaLogin('web'),
+              width: 370,
+              //color: Colors.black,
+            ),
+          ],
+        ),
+      ),
+    ));
+  }
+
+  Widget loginMobile() {
+    return (Dialog(
+        backgroundColor: Color.fromARGB(0, 0, 0, 0),
+        child: Container(
+          margin: EdgeInsets.only(left: 20, right: 20),
+          decoration: BoxDecoration(
+              color: colorScaffold, borderRadius: BorderRadius.circular(40)),
+          height: MediaQuery.of(context).size.height * 0.5,
+          width: MediaQuery.of(context).size.width,
+          child: vistaLogin('mobile'),
+        )));
+  }
+
   @override
   Widget build(BuildContext context) {
+    final ancho_pantalla = MediaQuery.of(context).size.width;
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user != null) {
         //print(user.uid);
@@ -290,27 +334,9 @@ class _LoginState extends State<Login> {
     });
     return (usuarioLogeado)
         ? VisionUI()
-        : Dialog(
-            backgroundColor: Color.fromARGB(0, 0, 0, 0),
-            child: Container(
-              height: MediaQuery.of(context).size.height * 0.5,
-              width: 780,
-              decoration: BoxDecoration(
-                color: colorScaffold,
-                borderRadius: BorderRadius.circular(40),
-              ),
-              child: Row(
-                children: [
-                  sliderLogo(),
-                  Container(
-                    child: vistaLogin(),
-                    width: 370,
-                    //color: Colors.black,
-                  ),
-                ],
-              ),
-            ),
-          );
+        : (ancho_pantalla > 842)
+            ? loginWeb()
+            : loginMobile();
   }
 }
 

@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:prueba/autenticacion.dart';
 import 'package:prueba/login/login.dart';
 
@@ -18,6 +19,7 @@ class HeaderLogged extends StatefulWidget {
 
 class _HeaderLoggedState extends State<HeaderLogged> {
   var openLogin = false;
+  var openDataVision = false;
 
   //Colores
   var colorScaffold = Color(0xffffebdcac);
@@ -30,10 +32,51 @@ class _HeaderLoggedState extends State<HeaderLogged> {
     ));
   }
 
+  Widget DataVision() {
+    return (Dialog(
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.5,
+        width: MediaQuery.of(context).size.width * 0.5,
+        child: Column(
+          children: [
+            Container(
+              height: MediaQuery.of(context).size.height * 0.1,
+              width: MediaQuery.of(context).size.width * 0.5,
+              color: colorNaranja,
+              child: Center(
+                child: Text(
+                  'DATOS DE VISION',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'Impact',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+            Container(
+              height: MediaQuery.of(context).size.height * 0.4,
+              width: MediaQuery.of(context).size.width * 0.5,
+              color: colorMorado,
+              child: Center(
+                child: Html(
+                    data:
+                        '<iframe width="800" height="467" src="https://lookerstudio.google.com/embed/reporting/32e7bee6-09fc-4ebd-a389-52fc9cfcbbfb/page/zf4CD" frameborder="0" style="border:0" allowfullscreen></iframe>'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ));
+  }
+
   Widget btnIndexMenu() {
     return (GestureDetector(
       onTap: () {
-        print('hola mundo');
+        setState(() {
+          openDataVision = !openDataVision;
+        });
       },
       child: Container(
           child: Text(
@@ -97,25 +140,28 @@ class _HeaderLoggedState extends State<HeaderLogged> {
         style: TextStyle(
             color: Colors.white,
             fontFamily: 'Impact',
-            fontSize: 16,
+            fontSize: 12,
             fontWeight: FontWeight.bold),
       )),
     ));
   }
 
   Widget btnCredenciales() {
-    return (Container(
+    return (GestureDetector(
+      onTap: () {
+        cerrarSesion();
+      },
       child: Container(
           width: MediaQuery.of(context).size.width * 0.25,
           height: MediaQuery.of(context).size.height * 0.03,
           color: colorNaranja,
           child: Center(
             child: Text(
-              'INICIAR SESION',
+              'CERRAR SESION',
               style: TextStyle(
                   color: Colors.white,
                   fontFamily: 'Impact',
-                  fontSize: 16,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
@@ -160,7 +206,11 @@ class _HeaderLoggedState extends State<HeaderLogged> {
         AnimatedOpacity(
             opacity: (openLogin) ? 1 : 0,
             duration: Duration(milliseconds: 500),
-            child: Login())
+            child: openLogin ? Login() : Container()),
+        AnimatedOpacity(
+            opacity: (openDataVision) ? 1 : 0,
+            duration: Duration(milliseconds: 500),
+            child: openDataVision ? DataVision() : Container())
       ],
     );
   }

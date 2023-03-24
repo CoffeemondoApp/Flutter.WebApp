@@ -30,8 +30,13 @@ class _SliderImagenesHeaderState extends State<SliderImagenesHeader> {
         setState(() {
           usuarioLogeado = true;
         });
+      } else {
+        setState(() {
+          usuarioLogeado = false;
+        });
       }
     });
+    print('estado user' + '$usuarioLogeado');
     return Stack(
       children: [
         PageView(
