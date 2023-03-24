@@ -26,7 +26,7 @@ class _HeaderLoggedState extends State<HeaderLogged> {
   Widget logoMenu() {
     return (Container(
       alignment: Alignment.centerRight,
-      child: Image(image: AssetImage('/logo.png')),
+      child: Image(image: AssetImage('assets/logo.png')),
     ));
   }
 

@@ -1,11 +1,8 @@
-import 'dart:html';
 import 'dart:ui';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
-import 'package:flutter_launcher_icons/xml_templates.dart';
 import 'package:prueba/firebase_options.dart';
 import 'package:prueba/login/login.dart';
 
@@ -36,7 +33,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'CoffeeMondo'),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
@@ -79,26 +76,23 @@ class _MyHomePageState extends State<MyHomePage> {
     bool usuarioExiste = currentUser != null;
     print('logged in: ${usuarioExiste}');
     return Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          leading: Container(
-            margin: EdgeInsets.only(left: 10),
-            child: IconButton(
-              icon: Icon(Icons.menu, color: Colors.white, size: 40),
-              onPressed: () {},
-            ),
+        appBar: PreferredSize(
+          preferredSize:
+              Size.fromHeight(MediaQuery.of(context).size.width * 0.75),
+          child: SliderImagenesHeader(
+            usuario: usuarioExiste,
+            imagenes: [
+              Image(
+                image: AssetImage('assets/MUJER.jpg'),
+                fit: BoxFit.cover,
+              ),
+              Image(
+                image: AssetImage('assets/hombre2.png'),
+                fit: BoxFit.cover,
+              ),
+            ],
           ),
-          toolbarHeight: 100,
-          // Here we take the value from the MyHomePage object that was created by
-          // the App.build method, and use it to set our appbar title.
-          title: Text(widget.title, style: TextStyle(fontSize: 30)),
-          backgroundColor: Colors.red,
         ),
-        body: Container(
-          child: Image(
-            image: AssetImage('assets/MUJER.jpg'),
-            fit: BoxFit.cover,
-          ),
-        ));
+        body: Container());
   }
 }

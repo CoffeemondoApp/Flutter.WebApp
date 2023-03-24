@@ -235,7 +235,7 @@ class _LoginState extends State<Login> {
         color: colorNaranja,
         borderRadius: BorderRadius.circular(40),
       ),
-      child: Image(image: AssetImage('/logo.png')),
+      child: Image(image: AssetImage('assets/logo.png')),
     ));
   }
 
