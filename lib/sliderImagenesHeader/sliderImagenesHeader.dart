@@ -36,7 +36,6 @@ class _SliderImagenesHeaderState extends State<SliderImagenesHeader> {
         });
       }
     });
-    print('estado user' + '$usuarioLogeado');
     return Stack(
       children: [
         PageView(

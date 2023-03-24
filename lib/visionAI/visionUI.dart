@@ -22,8 +22,7 @@ class _VisionUIState extends State<VisionUI> {
   var mostrarData2 = false;
   var mostrarDataStudio = false;
   late VideoPlayerController _controller;
-  final videoUrl =
-      'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8';
+  final videoUrl = 'https://www.visionsinc.xyz/hls/test.m3u8';
   void initState() {
     super.initState();
 

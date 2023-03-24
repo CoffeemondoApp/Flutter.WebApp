@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:prueba/autenticacion.dart';
 import 'package:prueba/login/login.dart';
+import 'package:prueba/visionAI/visionUI.dart';
 
 class Header extends StatefulWidget {
   final double ancho_pantalla;
@@ -172,14 +173,13 @@ class _HeaderState extends State<Header> {
 
   @override
   Widget build(BuildContext context) {
-    print("ancho pantalla ${widget.ancho_pantalla}");
     return Column(
       children: [
         Container(
           height: (widget.ancho_pantalla > 842)
               ? MediaQuery.of(context).size.height * 0.1
               : MediaQuery.of(context).size.width * 0.1,
-          margin: EdgeInsets.only(left: 20, right: 20, top: 50),
+          margin: EdgeInsets.only(left: 30, right: 30, top: 50),
           child: (ClipRect(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
@@ -211,7 +211,7 @@ class _HeaderState extends State<Header> {
         AnimatedOpacity(
             opacity: (openDataVision) ? 1 : 0,
             duration: Duration(milliseconds: 500),
-            child: openDataVision ? DataVision() : Container())
+            child: openDataVision ? VisionUI() : Container())
       ],
     );
   }

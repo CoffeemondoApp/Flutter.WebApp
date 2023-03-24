@@ -136,7 +136,7 @@ class _HeaderLoggedState extends State<HeaderLogged> {
     return (Container(
       child: Container(
           child: Text(
-        'MENU DE NAVEGACION',
+        'VISION AI',
         style: TextStyle(
             color: Colors.white,
             fontFamily: 'Impact',
