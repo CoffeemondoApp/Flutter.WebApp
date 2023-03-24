@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_launcher_icons/xml_templates.dart';
 import 'package:prueba/firebase_options.dart';
 import 'package:prueba/login/login.dart';
 
@@ -33,7 +34,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'CoffeeMondo'),
     );
   }
 }
@@ -76,23 +77,12 @@ class _MyHomePageState extends State<MyHomePage> {
     bool usuarioExiste = currentUser != null;
     print('logged in: ${usuarioExiste}');
     return Scaffold(
-        appBar: PreferredSize(
-          preferredSize:
-              Size.fromHeight(MediaQuery.of(context).size.width * 0.75),
-          child: SliderImagenesHeader(
-            usuario: usuarioExiste,
-            imagenes: [
-              Image(
-                image: AssetImage('/MUJER.jpg'),
-                fit: BoxFit.cover,
-              ),
-              Image(
-                image: AssetImage('/hombre2.png'),
-                fit: BoxFit.cover,
-              ),
-            ],
-          ),
+        appBar: AppBar(
+          // Here we take the value from the MyHomePage object that was created by
+          // the App.build method, and use it to set our appbar title.
+          title: Text(widget.title),
+          backgroundColor: Colors.red,
         ),
-        body: Container());
+        body: Container(child: Text('hola mundo')));
   }
 }
