@@ -102,6 +102,7 @@ class _LoginState extends State<Login> {
   var passwordMatch = false;
   var mostrarPassword = false;
   var mostrarConfirmPassword = false;
+  var SignInAvailable = false;
 
   Widget btnIniciarSesion(double fontSize) {
     return (Container(
@@ -402,6 +403,7 @@ class _LoginState extends State<Login> {
         print(
             "passwords match $value ${passwordController.text} $passwordMatch");
       },
+      controller: controller,
       style: TextStyle(color: colorNaranja, fontSize: fontSize),
       obscureText: !mostrarConfirmPassword ? true : false,
       decoration: InputDecoration(
@@ -467,8 +469,8 @@ class _LoginState extends State<Login> {
       width: (tryLogin || showRegister) ? 780 : 400,
       height: 480,
       decoration: BoxDecoration(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.all(Radius.circular(20))),
+        color: Colors.transparent,
+      ),
       child: Stack(
         children: <Widget>[
           AnimatedPositioned(
@@ -577,12 +579,57 @@ class _LoginState extends State<Login> {
     );
   }
 
+  Future<void> createUserWithEmailAndPassword() async {
+    try {
+      await Auth().createUserWithEmailAndPassword(
+        // Se utilizan los strings ingresados por el usuario para almacenar su email y contrasena en firebase auth
+        email: correoController.text,
+        password: passwordController.text,
+      );
+      print('Cuenta de usuario creada en FIREBASE satisfactoriamente.');
+      // pushReplacement remplazará la pantalla actual en la pila de navegacion por la nueva pantalla,
+      //lo que significa que el usuario no podra volver a la pantalla anterior al presionar el botón
+      //"Atrás" en su dispositivo.
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        print('Tu contrasena es muy debil.');
+      } else if (e.code == 'email-already-in-use') {
+        //error_register = 'El correo electronico ya esta en uso.';
+        setState(() {
+          //_visible_errormsj = true;
+        });
+        //print(error_register);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
   Widget btnRegister(double fontSize) {
     return (Container(
       height: 50,
       width: ancho_items,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+          print('Password Match $passwordMatch');
+          print('6 chars $sixChars');
+          print('uppercase $numberUpperCase');
+          print(
+              'Email valido ${correoController.text != '' && correoController.text.contains('@')}');
+          print('Email existe ${correoExisteRegister2}}');
+          print(
+              'password completed ${passwordController.text != '' && passwordConfirmController.text != ''}');
+          if (passwordMatch &&
+              sixChars &&
+              numberUpperCase &&
+              correoController.text != '' &&
+              correoController.text.contains('@') &&
+              !correoExisteRegister2 &&
+              passwordController.text != '' &&
+              passwordConfirmController.text != '') {
+            createUserWithEmailAndPassword();
+          }
+        },
         child: Text(
           "Crear cuenta",
           style: TextStyle(

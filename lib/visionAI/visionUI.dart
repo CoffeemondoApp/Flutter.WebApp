@@ -30,8 +30,9 @@ class _VisionUIState extends State<VisionUI> {
     super.initState();
 
     try {
-      _controller = VideoPlayerController.network(videoUrl)
-        ..initialize().then((_) {
+      _controller = VideoPlayerController.network(
+        videoUrl,
+      )..initialize().then((_) {
           // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
           setState(() {});
         });
@@ -145,7 +146,19 @@ class _VisionUIState extends State<VisionUI> {
               color: colorNaranja,
               iconSize: 30,
               style: ButtonStyle(),
-              onPressed: () => writeNewPost(true),
+              onPressed: () {
+                // Wrap the play or pause in a call to `setState`. This ensures the
+                // correct icon is shown.
+                setState(() {
+                  // If the video is playing, pause it.
+                  if (_controller.value.isPlaying) {
+                    _controller.pause();
+                  } else {
+                    // If the video is paused, play it.
+                    _controller.play();
+                  }
+                });
+              },
               icon: Icon(Icons.power_settings_new)),
         ),
         Container(
