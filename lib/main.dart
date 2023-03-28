@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:prueba/firebase_options.dart';
 import 'package:prueba/login/login.dart';
 
-import 'sliderImagenesHeader/sliderImagenesHeader.dart';
+import 'sliderImagenesHeader/index.dart';
 
 Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -79,7 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: PreferredSize(
         preferredSize:
             Size.fromHeight(MediaQuery.of(context).size.width * 0.75),
-        child: SliderImagenesHeader(
+        child: index(
           usuario: usuarioExiste,
           imagenes: [
             Image(

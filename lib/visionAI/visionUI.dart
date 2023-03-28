@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:video_player/video_player.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class VisionUI extends StatefulWidget {
   const VisionUI({super.key});
@@ -21,6 +23,7 @@ class _VisionUIState extends State<VisionUI> {
   var mostrarData = false;
   var mostrarData2 = false;
   var mostrarDataStudio = false;
+  var uidCamara = "";
   late VideoPlayerController _controller;
   final videoUrl = 'https://www.visionsinc.xyz/hls/test.m3u8';
   void initState() {
@@ -36,6 +39,87 @@ class _VisionUIState extends State<VisionUI> {
     } catch (e) {
       print(e);
     }
+  }
+
+  int maxPositionY(int cantZoom) {
+    var maxY = (cantZoom * 5) * 5;
+    return maxY;
+  }
+
+  int maxPositionX(int cantZoom) {
+    var maxX = ((cantZoom * 5) * 2) * 3;
+    return maxX;
+  }
+
+  void centerCamera() async {
+    final postData = {'inputTB': 0, 'inputLR': 0, 'zoom': 0};
+    return FirebaseDatabase.instance
+        .ref()
+        .child('live/zoomInput')
+        .update(postData);
+  }
+
+  //funcion para obtener todos los UID de la coleccion visionAI de la BD de Firestore
+
+  void InputTB(String value) async {
+    final ref = FirebaseDatabase.instance.ref();
+    final stream = ref.child('live').child('zoomInput').onValue;
+    await stream.first.then((event) {
+      final username = event.snapshot.value as Map<String, dynamic>;
+      int cantZoom = username['zoom'];
+      int inputTB = username['inputTB'];
+      var maxPost = maxPositionY(cantZoom);
+      if (value == "Up") {
+        inputTB -= 25;
+      } else if (value == "Down") {
+        inputTB += 25;
+      }
+      if (inputTB > maxPost) {
+        inputTB = maxPost;
+      } else if (inputTB < -maxPost) {
+        inputTB = -maxPost;
+      }
+
+      final postData = {'inputTB': inputTB};
+      return FirebaseDatabase.instance
+          .ref()
+          .child('live/zoomInput')
+          .update(postData);
+    });
+  }
+
+  void InputLR(String value) async {
+    final ref = FirebaseDatabase.instance.ref();
+    final stream = ref.child('live').child('zoomInput').onValue;
+    await stream.first.then((event) {
+      final username = event.snapshot.value as Map<String, dynamic>;
+      int cantZoom = username['zoom'];
+      int inputLR = username['inputLR'];
+      var maxPost = maxPositionX(cantZoom);
+      if (value == "Left") {
+        inputLR -= 30;
+      } else if (value == "Right") {
+        inputLR += 30;
+      }
+      if (inputLR > maxPost) {
+        inputLR = maxPost;
+      } else if (inputLR < -maxPost) {
+        inputLR = -maxPost;
+      }
+
+      final postData = {'inputLR': inputLR};
+      return FirebaseDatabase.instance
+          .ref()
+          .child('live/zoomInput')
+          .update(postData);
+    });
+  }
+
+  void writeNewPost(bool value) async {
+    // A post entry.
+    final postData = {'Streaming': value};
+
+    return FirebaseDatabase.instance.ref().child('live').update(postData);
   }
 
   Widget videoPlayer() {
@@ -61,7 +145,7 @@ class _VisionUIState extends State<VisionUI> {
               color: colorNaranja,
               iconSize: 30,
               style: ButtonStyle(),
-              onPressed: () => print('Prender camara'),
+              onPressed: () => writeNewPost(true),
               icon: Icon(Icons.power_settings_new)),
         ),
         Container(
@@ -72,7 +156,7 @@ class _VisionUIState extends State<VisionUI> {
               color: colorScaffold,
               iconSize: 30,
               style: ButtonStyle(),
-              onPressed: () => print('Apagar camara'),
+              onPressed: () => writeNewPost(false),
               icon: Icon(Icons.power_settings_new)),
         ),
       ],
@@ -80,6 +164,7 @@ class _VisionUIState extends State<VisionUI> {
   }
 
   Widget consolaMovimiento() {
+    print(uidCamara);
     return (Column(
       children: [
         Container(
@@ -90,7 +175,7 @@ class _VisionUIState extends State<VisionUI> {
               color: colorNaranja,
               iconSize: 30,
               style: ButtonStyle(),
-              onPressed: () => print('Mover arriba'),
+              onPressed: () => InputTB('Up'),
               icon: Icon(Icons.arrow_upward)),
         ),
         Row(
@@ -104,7 +189,7 @@ class _VisionUIState extends State<VisionUI> {
                   color: colorNaranja,
                   iconSize: 30,
                   style: ButtonStyle(),
-                  onPressed: () => print('Mover izquierda'),
+                  onPressed: () => InputLR('Left'),
                   icon: Icon(Icons.arrow_back)),
             ),
             Container(
@@ -115,7 +200,7 @@ class _VisionUIState extends State<VisionUI> {
                   color: colorNaranja,
                   iconSize: 30,
                   style: ButtonStyle(),
-                  onPressed: () => print('Mover abajo'),
+                  onPressed: () => centerCamera(),
                   icon: Icon(Icons.select_all_outlined)),
             ),
             Container(
@@ -126,7 +211,7 @@ class _VisionUIState extends State<VisionUI> {
                   color: colorNaranja,
                   iconSize: 30,
                   style: ButtonStyle(),
-                  onPressed: () => print('Mover derecha'),
+                  onPressed: () => InputLR("Right"),
                   icon: Icon(Icons.arrow_forward)),
             ),
           ],
@@ -139,7 +224,7 @@ class _VisionUIState extends State<VisionUI> {
               color: colorNaranja,
               iconSize: 30,
               style: ButtonStyle(),
-              onPressed: () => print('Mover abajo'),
+              onPressed: () => InputTB("Down"),
               icon: Icon(Icons.arrow_downward)),
         ),
       ],
@@ -147,6 +232,57 @@ class _VisionUIState extends State<VisionUI> {
   }
 
   Widget btnsZoom() {
+    void zoom(String value) async {
+      final ref = FirebaseDatabase.instance.ref();
+      final stream = ref.child('live').child('zoomInput').onValue;
+
+      await stream.first.then((event) {
+        final username = event.snapshot.value as Map<String, dynamic>;
+
+        var zoom = username['zoom'];
+        var maxinputTB;
+        var maxinputLR;
+
+        if (value == "zoom+") {
+          zoom += 1;
+        } else if (value == "zoom-") {
+          zoom -= 1;
+        }
+        if (zoom >= 9) {
+          zoom = 9;
+        }
+        var inputTB = username['inputTB'];
+        var inputLR = username['inputLR'];
+        maxinputTB = maxPositionY(zoom);
+        maxinputLR = maxPositionX(zoom);
+        var postData = {
+          'zoom': zoom,
+          'inputLR': inputLR,
+          'inputTB': inputTB,
+        };
+        if (maxinputLR <= inputLR) {
+          postData['inputLR'] = maxinputLR;
+        }
+        if (-maxinputLR >= inputLR) {
+          postData['inputLR'] = -maxinputLR;
+        }
+        if (maxinputTB <= inputTB) {
+          postData['inputTB'] = maxinputTB;
+        }
+        if (-maxinputTB >= inputTB) {
+          postData['inputTB'] = -maxinputTB;
+        }
+        if (zoom <= 0) {
+          centerCamera();
+        } else {
+          return FirebaseDatabase.instance
+              .ref()
+              .child('live/zoomInput')
+              .update(postData);
+        }
+      });
+    }
+
     return (Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -158,7 +294,7 @@ class _VisionUIState extends State<VisionUI> {
               color: colorNaranja,
               iconSize: 30,
               style: ButtonStyle(),
-              onPressed: () => print('Zoom in'),
+              onPressed: () => zoom('zoom+'),
               icon: Icon(Icons.zoom_in_outlined)),
         ),
         Container(
@@ -169,7 +305,7 @@ class _VisionUIState extends State<VisionUI> {
               color: colorNaranja,
               iconSize: 30,
               style: ButtonStyle(),
-              onPressed: () => print('Zoom out'),
+              onPressed: () => zoom('zoom-'),
               icon: Icon(Icons.zoom_out_outlined)),
         ),
       ],
@@ -190,8 +326,8 @@ class _VisionUIState extends State<VisionUI> {
           child: videoPlayer(),
         ),
         Container(
-          width: 300,
-          height: MediaQuery.of(context).size.height * 0.5,
+          width: 250,
+          height: 500,
           decoration: BoxDecoration(
               color: colorNaranja,
               borderRadius: BorderRadius.circular(40),
@@ -213,7 +349,7 @@ class _VisionUIState extends State<VisionUI> {
               child: consolaMovimiento(),
             ),
             Container(
-              margin: EdgeInsets.symmetric(vertical: 60, horizontal: 90),
+              margin: EdgeInsets.symmetric(vertical: 60, horizontal: 50),
 
               //color: Colors.black,
               child: btnsZoom(),
@@ -252,7 +388,7 @@ class _VisionUIState extends State<VisionUI> {
       child: AnimatedContainer(
         duration: Duration(milliseconds: 500),
         curve: Curves.easeInOutBack,
-        height: (mostrarData) ? 700 : 650,
+        height: (mostrarData) ? 700 : 690,
         width: 1280,
         decoration: BoxDecoration(
             color: colorScaffold,

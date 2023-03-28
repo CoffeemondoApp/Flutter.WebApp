@@ -7,6 +7,8 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:prueba/autenticacion.dart';
 import 'package:prueba/login/login.dart';
 
+import '../sliderImagenesHeader/dataFrame.dart';
+
 class HeaderLogged extends StatefulWidget {
   final double ancho_pantalla;
   final bool usuarioLogueado;
@@ -74,9 +76,22 @@ class _HeaderLoggedState extends State<HeaderLogged> {
   Widget btnIndexMenu() {
     return (GestureDetector(
       onTap: () {
-        setState(() {
-          openDataVision = !openDataVision;
-        });
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => dataFrame(
+                      imagenes: [
+                        Image(
+                          image: AssetImage('assets/MUJER.jpg'),
+                          fit: BoxFit.cover,
+                        ),
+                        Image(
+                          image: AssetImage('assets/hombre2.png'),
+                          fit: BoxFit.cover,
+                        ),
+                      ],
+                      usuario: true,
+                    )));
       },
       child: Container(
           child: Text(

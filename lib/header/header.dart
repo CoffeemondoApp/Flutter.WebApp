@@ -6,7 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:prueba/autenticacion.dart';
 import 'package:prueba/login/login.dart';
-import 'package:prueba/visionAI/visionUI.dart';
+import 'package:prueba/sliderImagenesHeader/dataFrame.dart';
+import 'package:prueba/visionAI/asda.dart';
+
+import '../visionAI/visionUIFullScreen.dart';
 
 class Header extends StatefulWidget {
   final double ancho_pantalla;
@@ -19,6 +22,10 @@ class Header extends StatefulWidget {
 }
 
 class _HeaderState extends State<Header> {
+  void initState() {
+    super.initState();
+  }
+
   var openLogin = false;
   var openDataVision = false;
 
@@ -37,7 +44,22 @@ class _HeaderState extends State<Header> {
     return (GestureDetector(
       onTap: () {
         setState(() {
-          openDataVision = !openDataVision;
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => dataFrame(
+                        imagenes: [
+                          Image(
+                            image: AssetImage('assets/MUJER.jpg'),
+                            fit: BoxFit.cover,
+                          ),
+                          Image(
+                            image: AssetImage('assets/hombre2.png'),
+                            fit: BoxFit.cover,
+                          ),
+                        ],
+                        usuario: true,
+                      )));
         });
       },
       child: Container(
@@ -156,15 +178,23 @@ class _HeaderState extends State<Header> {
               ),
             ),
             Container(
-              height: MediaQuery.of(context).size.height * 0.4,
-              width: MediaQuery.of(context).size.width * 0.5,
-              color: colorMorado,
-              child: Center(
-                child: Html(
-                    data:
-                        '<iframe width="600" height="350" src="https://lookerstudio.google.com/embed/reporting/32e7bee6-09fc-4ebd-a389-52fc9cfcbbfb/page/zf4CD" frameborder="0" style="border:0" allowfullscreen></iframe>'),
-              ),
-            ),
+                color: colorMorado,
+                height: MediaQuery.of(context).size.height * 0.4,
+                child: Center(
+                    child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => VisionUIFullScreen()));
+                  },
+                  child: Container(
+                    child: Text(
+                      'Abrir Data Studio',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                )))
           ],
         ),
       ),
@@ -211,7 +241,7 @@ class _HeaderState extends State<Header> {
         AnimatedOpacity(
             opacity: (openDataVision) ? 1 : 0,
             duration: Duration(milliseconds: 500),
-            child: openDataVision ? VisionUI() : Container())
+            child: openDataVision ? DataVision() : Container())
       ],
     );
   }

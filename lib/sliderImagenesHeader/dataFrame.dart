@@ -2,25 +2,38 @@ import 'dart:ui';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:prueba/header/header.dart';
 import 'package:prueba/header/header_logged.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 
 import 'package:prueba/login/login.dart';
 
-class SliderImagenesHeader extends StatefulWidget {
+class dataFrame extends StatefulWidget {
   final List<Widget> imagenes;
   final bool usuario;
 
-  SliderImagenesHeader({required this.imagenes, required this.usuario});
+  dataFrame({required this.imagenes, required this.usuario});
 
   @override
-  _SliderImagenesHeaderState createState() => _SliderImagenesHeaderState();
+  _dataFrameState createState() => _dataFrameState();
 }
 
-class _SliderImagenesHeaderState extends State<SliderImagenesHeader> {
+class _dataFrameState extends State<dataFrame> {
   final PageController _pageController = PageController(initialPage: 0);
   int _currentPage = 0;
   bool usuarioLogeado = false;
+
+  void initState() {
+    super.initState();
+    dataStudio();
+  }
+
+  Widget dataStudio() {
+    return Html(
+        data:
+            '<iframe width="900" height="525" src="https://lookerstudio.google.com/embed/reporting/32e7bee6-09fc-4ebd-a389-52fc9cfcbbfb/page/zf4CD" frameborder="0" style="border:0" allowfullscreen></iframe>');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +49,9 @@ class _SliderImagenesHeaderState extends State<SliderImagenesHeader> {
         });
       }
     });
-    return Stack(
+    return MaterialApp(
+        home: Scaffold(
+            body: Stack(
       children: [
         PageView(
           controller: _pageController,
@@ -51,6 +66,12 @@ class _SliderImagenesHeaderState extends State<SliderImagenesHeader> {
             ? HeaderLogged(ancho_pantalla, usuarioLogeado)
             : Header(ancho_pantalla, usuarioLogeado),
         //(ancho_pantalla > 1180) ? Login() : Container(),
+        Container(
+          child: Center(child: dataStudio()),
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height,
+          decoration: BoxDecoration(color: Colors.black.withOpacity(0.5)),
+        ),
         Container(
           margin: EdgeInsets.symmetric(horizontal: 50),
           alignment: Alignment.center,
@@ -95,6 +116,6 @@ class _SliderImagenesHeaderState extends State<SliderImagenesHeader> {
           ),
         )
       ],
-    );
+    )));
   }
 }
