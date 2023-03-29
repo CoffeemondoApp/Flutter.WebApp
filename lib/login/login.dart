@@ -73,7 +73,7 @@ class _LoginState extends State<Login> {
   var colorMorado = Color.fromARGB(0xff, 0x52, 0x01, 0x9b);
   //Tamaños
   var ancho_items = 350.0;
-  var ancho_login = 330.0;
+  var ancho_login = 500.0;
   Offset _containerPosition = Offset.zero;
   //Controladores
   TextEditingController correoController = TextEditingController();
@@ -85,6 +85,15 @@ class _LoginState extends State<Login> {
   var tryLogin3 = false;
   var isLogin = false;
   var estadoInicioSesion = 'Iniciando sesion...';
+  var mostrarErrorCorreo = false;
+  var mostrarErrorCorreo1 = false;
+  var mostrarErrorCorreo2 = false;
+  var mensajeErrorCorreo = '';
+
+  var mostrarErrorPassword = false;
+  var mostrarErrorPassword1 = false;
+  var mostrarErrorPassword2 = false;
+  var mensajeErrorPassword = '';
   //variables slider
   var sliderLogo_x = 0.0;
 
@@ -103,13 +112,94 @@ class _LoginState extends State<Login> {
   var mostrarPassword = false;
   var mostrarConfirmPassword = false;
   var SignInAvailable = false;
+  var mostrarErrorCorreoR = false;
+  var mostrarErrorCorreoR2 = false;
+  var mensajeErrorCorreoR = '';
+
+  Future<void> signInWithEmailAndPassword() async {
+    try {
+      await Auth().signInWithEmailAndPassword(
+        email: correoController.text,
+        password: passwordController.text,
+      );
+      tryLogin = false;
+
+      print('Inicio de sesión satisfactorio en FIREBASE.');
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        errorLogin('email no encontrado', 'correo');
+      } else if (e.code == 'wrong-password') {
+        errorLogin('password incorrecta', 'contraseña');
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void errorLogin(String error, String campo) {
+    campo == 'correo'
+        ? setState(() {
+            mostrarErrorCorreo = true;
+
+            if (error == 'email vacio') {
+              mensajeErrorCorreo = 'El campo de correo no puede estar vacio';
+            } else if (error == 'email no encontrado') {
+              mensajeErrorCorreo =
+                  'El correo introducido no esta registrado en la aplicacion';
+            }
+
+            Future.delayed(Duration(milliseconds: 500), () {
+              setState(() {
+                mostrarErrorCorreo1 = true;
+              });
+            });
+            Future.delayed(Duration(milliseconds: 500), () {
+              setState(() {
+                mostrarErrorCorreo2 = true;
+              });
+            });
+          })
+        : setState(() {
+            mostrarErrorPassword = true;
+
+            if (error == 'passw vacio') {
+              mensajeErrorPassword =
+                  'El campo de contraseña no puede estar vacio';
+            } else if (error == 'password incorrecta') {
+              mensajeErrorPassword = 'La contraseña introducida es incorrecta';
+            }
+            Future.delayed(Duration(milliseconds: 500), () {
+              setState(() {
+                mostrarErrorPassword1 = true;
+              });
+            });
+            Future.delayed(Duration(milliseconds: 500), () {
+              setState(() {
+                mostrarErrorPassword2 = true;
+              });
+            });
+          });
+  }
 
   Widget btnIniciarSesion(double fontSize) {
     return (Container(
       height: 50,
-      width: ancho_items,
+      width: MediaQuery.of(context).size.width,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+          if (correoController.text != '' &&
+              correoController.text.contains('@') &&
+              passwordController.text != '') {
+            signInWithEmailAndPassword();
+          } else {
+            if (correoController.text.isEmpty) {
+              errorLogin('email vacio', 'correo');
+            }
+            if (passwordController.text.isEmpty) {
+              errorLogin('passw vacio', 'contraseña');
+            }
+          }
+        },
         child: Text(
           "Iniciar Sesión",
           style: TextStyle(
@@ -130,8 +220,8 @@ class _LoginState extends State<Login> {
 
   Widget btnIniciarSesionGoogle(double fontSize) {
     return (Container(
+      width: MediaQuery.of(context).size.width,
       height: 50,
-      width: ancho_items,
       child: ElevatedButton(
         onPressed: () {
           setState(() {
@@ -158,20 +248,31 @@ class _LoginState extends State<Login> {
     ));
   }
 
-  Widget btnRegistro(double fontSize) {
+  Widget btnRegistro(double fontSize, String dispositivo) {
     return (Container(
+      width: MediaQuery.of(context).size.width,
       height: 50,
-      width: ancho_items,
       child: ElevatedButton(
         onPressed: () {
-          setState(() {
-            showRegister = !showRegister;
-          });
-          Future.delayed(Duration(milliseconds: 1500), () {
+          if (dispositivo == 'web') {
             setState(() {
-              showRegister2 = !showRegister2;
+              showRegister = !showRegister;
             });
-          });
+            Future.delayed(Duration(milliseconds: 1500), () {
+              setState(() {
+                showRegister2 = !showRegister2;
+              });
+            });
+          } else if (dispositivo == 'mobile') {
+            setState(() {
+              tryLogin = !tryLogin;
+            });
+            Future.delayed(Duration(milliseconds: 1500), () {
+              setState(() {
+                tryLogin2 = !tryLogin2;
+              });
+            });
+          }
         },
         child: Text(
           "Soy nuevo",
@@ -192,13 +293,13 @@ class _LoginState extends State<Login> {
     ));
   }
 
-  Widget btnsLogin(double fontSize) {
+  Widget btnsLogin(double fontSize, String dispositivo) {
     return (Column(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         btnIniciarSesion(fontSize),
         btnIniciarSesionGoogle(fontSize),
-        btnRegistro(fontSize)
+        btnRegistro(fontSize, dispositivo)
       ],
     ));
   }
@@ -206,7 +307,7 @@ class _LoginState extends State<Login> {
   Widget tituloLogin(double fontSize) {
     return (Center(
       child: Text(
-        "Iniciar Sesión",
+        "Adentrate en el fantastico mundo del café",
         style: TextStyle(
           color: colorNaranja,
           fontSize: fontSize,
@@ -233,14 +334,37 @@ class _LoginState extends State<Login> {
         if (ventana == 'register') {
           isEmailRegistered(value, ventana).then((value) {
             setState(() {
-              correoExisteRegister = value;
+              mostrarErrorCorreoR = value;
+              mensajeErrorCorreoR = 'El correo introducido ya existe';
             });
             Future.delayed(Duration(milliseconds: 500), () {
               setState(() {
-                correoExisteRegister2 = value;
+                mostrarErrorCorreoR2 = value;
               });
             });
           });
+          if (controller.text.length > 0) {
+            setState(() {
+              mostrarErrorCorreoR2 = false;
+            });
+            Future.delayed(Duration(milliseconds: 400), () {
+              setState(() {
+                mostrarErrorCorreoR = false;
+              });
+            });
+          }
+        } else {
+          if (controller.text.length > 0) {
+            setState(() {
+              mostrarErrorCorreo2 = false;
+              mostrarErrorCorreo1 = false;
+            });
+            Future.delayed(Duration(milliseconds: 400), () {
+              setState(() {
+                mostrarErrorCorreo = false;
+              });
+            });
+          }
         }
       },
       style: TextStyle(color: colorNaranja, fontSize: fontSize),
@@ -275,48 +399,62 @@ class _LoginState extends State<Login> {
     ));
   }
 
-  Widget textFieldPassword(TextEditingController controller, double fontSize) {
+  Widget textFieldPassword(
+      TextEditingController controller, double fontSize, String ventana) {
     return TextField(
       onChanged: (value) {
-        print(value);
-        if (value.length > 0) {
-          setState(() {
-            checkPassword = true;
-          });
-          if (value.contains(RegExp(r'[A-Z]')) &&
-              value.contains(RegExp(r'[0-9]'))) {
-            numberUpperCase = true;
+        if (ventana == 'register') {
+          if (value.length > 0) {
+            setState(() {
+              checkPassword = true;
+            });
+            if (value.contains(RegExp(r'[A-Z]')) &&
+                value.contains(RegExp(r'[0-9]'))) {
+              numberUpperCase = true;
+            } else {
+              numberUpperCase = false;
+            }
+
+            if (value.length > 5) {
+              setState(() {
+                sixChars = true;
+              });
+            } else {
+              setState(() {
+                sixChars = false;
+              });
+            }
+
+            Future.delayed(Duration(milliseconds: 500), () {
+              setState(() {
+                checkPassword2 = true;
+              });
+            });
           } else {
-            numberUpperCase = false;
+            setState(() {
+              checkPassword2 = false;
+            });
+            Future.delayed(Duration(milliseconds: 500), () {
+              setState(() {
+                checkPassword = false;
+              });
+            });
           }
 
-          if (value.length > 5) {
-            setState(() {
-              sixChars = true;
-            });
-          } else {
-            setState(() {
-              sixChars = false;
-            });
-          }
-
-          Future.delayed(Duration(milliseconds: 500), () {
-            setState(() {
-              checkPassword2 = true;
-            });
-          });
+          print(checkPassword);
         } else {
-          setState(() {
-            checkPassword2 = false;
-          });
-          Future.delayed(Duration(milliseconds: 500), () {
+          if (controller.text.length > 0) {
             setState(() {
-              checkPassword = false;
+              mostrarErrorPassword2 = false;
+              mostrarErrorPassword1 = false;
             });
-          });
+            Future.delayed(Duration(milliseconds: 400), () {
+              setState(() {
+                mostrarErrorPassword = false;
+              });
+            });
+          }
         }
-
-        print(checkPassword);
       },
       controller: controller,
       obscureText: !mostrarPassword ? true : false,
@@ -358,15 +496,16 @@ class _LoginState extends State<Login> {
   }
 
   void comprobarPassword() {
-    if (sixChars && numberUpperCase)
+    if (sixChars && numberUpperCase) {
       setState(() {
         checkPassword2 = false;
       });
-    Future.delayed(Duration(milliseconds: 500), () {
-      setState(() {
-        checkPassword = false;
+      Future.delayed(Duration(milliseconds: 500), () {
+        setState(() {
+          checkPassword = false;
+        });
       });
-    });
+    }
   }
 
   Widget textFieldConfirmPassword(
@@ -455,8 +594,8 @@ class _LoginState extends State<Login> {
 
   Widget logo() {
     return (Container(
-      width: 400,
-      height: 480,
+      width: 500,
+      height: 700,
       child: Center(child: Image.asset("assets/logo.png")),
       decoration: BoxDecoration(
           color: colorNaranja,
@@ -466,15 +605,15 @@ class _LoginState extends State<Login> {
 
   Widget sliderLogo() {
     return (Container(
-      width: (tryLogin || showRegister) ? 780 : 400,
-      height: 480,
+      width: (tryLogin || showRegister) ? 1000 : 500,
+      height: 700,
       decoration: BoxDecoration(
-        color: Colors.transparent,
-      ),
+          //color: Colors.black,
+          ),
       child: Stack(
         children: <Widget>[
           AnimatedPositioned(
-            left: tryLogin || showRegister ? 380 : 0,
+            left: tryLogin || showRegister ? 500 : 0,
             onEnd: () {
               if (tryLogin) {
                 setState(() {
@@ -500,12 +639,47 @@ class _LoginState extends State<Login> {
     ));
   }
 
+  Widget containerErrorLogin(String tipoError) {
+    return (AnimatedContainer(
+      duration: Duration(milliseconds: 500),
+      height: tipoError == 'correo'
+          ? (mostrarErrorCorreo1 ? 50 : 0)
+          : (mostrarErrorPassword1 ? 50 : 0),
+      width: ancho_login,
+      decoration: BoxDecoration(
+          color: colorNaranja,
+          borderRadius: BorderRadius.all(Radius.circular(20))),
+      child: mostrarErrorCorreo2 || mostrarErrorPassword2
+          ? Container(
+              margin: EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    (tipoError == 'correo')
+                        ? mensajeErrorCorreo
+                        : mensajeErrorPassword,
+                    style: TextStyle(
+                        color: colorMorado, fontWeight: FontWeight.bold),
+                  ),
+                  Icon(
+                    Icons.error,
+                    color: colorMorado,
+                  )
+                ],
+              ),
+            )
+          : Container(),
+    ));
+  }
+
   Widget vistaLogin(String dispositivo) {
     var fontSize = dispositivo == "web" ? 22.0 : 16.0;
     return (AnimatedOpacity(
-      duration: Duration(milliseconds: 500),
+      duration: Duration(milliseconds: 1000),
       opacity: tryLogin ? 0 : 1,
-      child: Column(
+      child: Container(
+          child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
@@ -513,31 +687,32 @@ class _LoginState extends State<Login> {
             child: tituloLogin(fontSize),
           ),
           SizedBox(
-            height: 20,
+            height: 40,
           ),
           Container(
             height: 50,
-            width: ancho_login,
             child: textFieldCorreo(correoController, fontSize, 'login'),
           ),
+          mostrarErrorCorreo ? containerErrorLogin('correo') : Container(),
           SizedBox(
             height: 20,
           ),
           Container(
               height: 50,
-              width: ancho_login,
-              child: textFieldPassword(passwordController, fontSize)),
+              child: textFieldPassword(passwordController, fontSize, 'login')),
+          mostrarErrorPassword
+              ? containerErrorLogin('contraseña')
+              : Container(),
           SizedBox(
             height: 20,
           ),
           Container(
-            child: btnsLogin(fontSize),
+            child: btnsLogin(fontSize, dispositivo),
             //color: Colors.black,
             height: 200,
-            width: 330,
           )
         ],
-      ),
+      )),
     ));
   }
 
@@ -567,7 +742,6 @@ class _LoginState extends State<Login> {
 
   Widget tituloRegister(double fontSize) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20),
       child: (Text(
         "Unete a la comunidad N°1 de cafeterias en linea",
         textAlign: TextAlign.center,
@@ -628,6 +802,49 @@ class _LoginState extends State<Login> {
               passwordController.text != '' &&
               passwordConfirmController.text != '') {
             createUserWithEmailAndPassword();
+            print('Crear usuario');
+          } else {
+            if (correoExisteRegister2) {
+              print('El correo ya existe');
+            } else if (correoController.text == '') {
+              print('El correo esta vacio');
+              setState(() {
+                mostrarErrorCorreoR = true;
+                mensajeErrorCorreoR = 'El correo esta vacio';
+              });
+              Future.delayed(Duration(milliseconds: 500), () {
+                setState(() {
+                  mostrarErrorCorreoR2 = true;
+                });
+              });
+            } else if (!correoController.text.contains('@')) {
+              print('El correo no es valido');
+              setState(() {
+                mostrarErrorCorreoR = true;
+                mensajeErrorCorreoR = 'El correo no es valido';
+              });
+              Future.delayed(Duration(milliseconds: 500), () {
+                setState(() {
+                  mostrarErrorCorreoR2 = true;
+                });
+              });
+            } else if (passwordController.text == '' ||
+                passwordConfirmController.text == '') {
+              setState(() {
+                checkPassword = true;
+                Future.delayed(Duration(milliseconds: 500), () {
+                  setState(() {
+                    checkPassword2 = true;
+                  });
+                });
+              });
+            } else if (!passwordMatch) {
+              print('Las contrasenas no coinciden');
+            } else if (!sixChars) {
+              print('La contrasena debe tener 6 caracteres');
+            } else if (!numberUpperCase) {
+              print('La contrasena debe tener al menos una mayuscula');
+            }
           }
         },
         child: Text(
@@ -690,27 +907,25 @@ class _LoginState extends State<Login> {
       curve: Curves.fastOutSlowIn,
       decoration: BoxDecoration(
           color: colorMorado, borderRadius: BorderRadius.circular(20)),
-      width: ancho_items,
-      height: (correoExisteRegister && tipo_error == 'email')
+      height: (mostrarErrorCorreoR && tipo_error == 'email')
           ? 50
           : (checkPassword && tipo_error == 'password')
               ? 100
               : (checkConfirmPassword && tipo_error == 'confirm_password')
                   ? 50
                   : 0,
-      margin: EdgeInsets.only(left: 25, right: 25),
       child: Container(
         margin: EdgeInsets.all(10),
         child: tipo_error == 'password'
             ? checkPassword2
                 ? columnaErrorPassword(tipo_error)
                 : Container()
-            : correoExisteRegister2
+            : tipo_error == 'email' && mostrarErrorCorreoR2
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'El correo ya existe',
+                        mensajeErrorCorreoR,
                         style: TextStyle(
                             color: colorNaranja, fontWeight: FontWeight.bold),
                       ),
@@ -720,7 +935,7 @@ class _LoginState extends State<Login> {
                       )
                     ],
                   )
-                : (tipo_error == 'confirm_password' && checkConfirmPassword2)
+                : (tipo_error == 'confirm_password' && checkConfirmPassword)
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -746,47 +961,47 @@ class _LoginState extends State<Login> {
     return (AnimatedOpacity(
       duration: Duration(milliseconds: 500),
       opacity: tryLogin ? 0 : 1,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            height: 50,
-            child: tituloRegister(fontSize),
-          ),
-          SizedBox(
-            height: 20,
-          ),
-          Container(
-            height: 50,
-            width: ancho_login,
-            child: textFieldCorreo(correoController, fontSize, 'register'),
-          ),
-          errorRegister('email'),
-          SizedBox(
-            height: 20,
-          ),
-          Container(
-              height: 50,
-              width: ancho_login,
-              child: textFieldPassword(passwordController, fontSize)),
-          errorRegister('password'),
-          SizedBox(
-            height: 20,
-          ),
-          Container(
-              height: 50,
-              width: ancho_login,
-              child: textFieldConfirmPassword(
-                  passwordConfirmController, fontSize)),
-          errorRegister('confirm_password'),
-          SizedBox(
-            height: 20,
-          ),
-          Container(
-            child: btnRegister(fontSize),
-          )
-        ],
-      ),
+      child: Container(
+          margin: EdgeInsets.only(left: 25, right: 25),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                height: 50,
+                child: tituloRegister(fontSize),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                height: 50,
+                child: textFieldCorreo(correoController, fontSize, 'register'),
+              ),
+              errorRegister('email'),
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                  height: 50,
+                  child: textFieldPassword(
+                      passwordController, fontSize, 'register')),
+              errorRegister('password'),
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                  height: 50,
+                  child: textFieldConfirmPassword(
+                      passwordConfirmController, fontSize)),
+              errorRegister('confirm_password'),
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                child: btnRegister(fontSize),
+              )
+            ],
+          )),
     ));
   }
 
@@ -794,21 +1009,32 @@ class _LoginState extends State<Login> {
     return (Dialog(
       backgroundColor: Color.fromARGB(0, 0, 0, 0),
       child: Container(
-        height: MediaQuery.of(context).size.height * 0.5,
-        width: 780,
+        height: 700,
+        width: 1000,
         decoration: BoxDecoration(
           color: colorScaffold,
           borderRadius: BorderRadius.circular(40),
         ),
         child: Row(
           children: [
-            showRegister2 ? Expanded(child: vistaRegister('web')) : Container(),
+            showRegister2
+                ? Container(
+                    child: vistaRegister('web'),
+                    width: 500,
+                    color: Colors.transparent,
+                  )
+                : Container(),
             tryLogin2 ? vistaCargando('login') : Container(),
             tryLogin2 || showRegister2 ? logo() : sliderLogo(),
             Container(
-              child:
-                  (tryLogin || showRegister) ? Container() : vistaLogin('web'),
-              width: (tryLogin || showRegister) ? 0 : 370,
+              child: (tryLogin || showRegister)
+                  ? Container()
+                  : Container(
+                      margin: EdgeInsets.only(left: 20, right: 20),
+                      child: vistaLogin('web'),
+                    ),
+              color: Colors.transparent,
+              width: (tryLogin || showRegister) ? 0 : 500,
               //color: Colors.black,
             ),
           ],
@@ -818,15 +1044,23 @@ class _LoginState extends State<Login> {
   }
 
   Widget loginMobile() {
+    if (tryLogin2) {
+      setState(() {
+        tryLogin = false;
+      });
+    }
     return (Dialog(
         backgroundColor: Color.fromARGB(0, 0, 0, 0),
         child: Container(
-          margin: EdgeInsets.only(left: 20, right: 20),
+          margin: EdgeInsets.only(left: 10, right: 10),
           decoration: BoxDecoration(
               color: colorScaffold, borderRadius: BorderRadius.circular(40)),
-          height: MediaQuery.of(context).size.height * 0.5,
+          height: 600,
           width: MediaQuery.of(context).size.width,
-          child: vistaLogin('mobile'),
+          child: Container(
+            child: tryLogin2 ? vistaRegister('mobile') : vistaLogin('mobile'),
+            margin: EdgeInsets.symmetric(horizontal: 10),
+          ),
         )));
   }
 
@@ -841,9 +1075,10 @@ class _LoginState extends State<Login> {
         });
       }
     });
+    //print(ancho_pantalla);
     return (usuarioLogeado)
         ? VisionUI()
-        : (ancho_pantalla > 842)
+        : (ancho_pantalla > 1083)
             ? loginWeb()
             : loginMobile();
   }
