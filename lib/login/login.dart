@@ -83,6 +83,7 @@ class _LoginState extends State<Login> {
   var tryLogin = false;
   var tryLogin2 = false;
   var tryLogin3 = false;
+  var tryLoginGoogleMobile = false;
   var isLogin = false;
   var estadoInicioSesion = 'Iniciando sesion...';
   var mostrarErrorCorreo = false;
@@ -94,6 +95,7 @@ class _LoginState extends State<Login> {
   var mostrarErrorPassword1 = false;
   var mostrarErrorPassword2 = false;
   var mensajeErrorPassword = '';
+
   //variables slider
   var sliderLogo_x = 0.0;
 
@@ -218,7 +220,7 @@ class _LoginState extends State<Login> {
     ));
   }
 
-  Widget btnIniciarSesionGoogle(double fontSize) {
+  Widget btnIniciarSesionGoogle(double fontSize, String dispositivo) {
     return (Container(
       width: MediaQuery.of(context).size.width,
       height: 50,
@@ -226,9 +228,14 @@ class _LoginState extends State<Login> {
         onPressed: () {
           setState(() {
             tryLogin = !tryLogin;
-            sliderLogo_x = _getPosition(sliderKey);
+            tryLoginGoogleMobile = !tryLoginGoogleMobile;
           });
-          ;
+          if (dispositivo == 'web') {
+          } else if (dispositivo == 'mobile') {
+            Future.delayed(Duration(milliseconds: 1000), () {
+              signInWithGoogle();
+            });
+          }
         },
         child: Text(
           "Iniciar Sesión con Google",
@@ -298,7 +305,7 @@ class _LoginState extends State<Login> {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         btnIniciarSesion(fontSize),
-        btnIniciarSesionGoogle(fontSize),
+        btnIniciarSesionGoogle(fontSize, dispositivo),
         btnRegistro(fontSize, dispositivo)
       ],
     ));
@@ -335,6 +342,7 @@ class _LoginState extends State<Login> {
           isEmailRegistered(value, ventana).then((value) {
             setState(() {
               mostrarErrorCorreoR = value;
+              correoExisteRegister = value;
               mensajeErrorCorreoR = 'El correo introducido ya existe';
             });
             Future.delayed(Duration(milliseconds: 500), () {
@@ -343,7 +351,7 @@ class _LoginState extends State<Login> {
               });
             });
           });
-          if (controller.text.length > 0) {
+          if (controller.text.length > 0 && correoExisteRegister) {
             setState(() {
               mostrarErrorCorreoR2 = false;
             });
@@ -1052,13 +1060,16 @@ class _LoginState extends State<Login> {
     return (Dialog(
         backgroundColor: Color.fromARGB(0, 0, 0, 0),
         child: Container(
-          margin: EdgeInsets.only(left: 10, right: 10),
           decoration: BoxDecoration(
               color: colorScaffold, borderRadius: BorderRadius.circular(40)),
-          height: 600,
+          height: 650,
           width: MediaQuery.of(context).size.width,
           child: Container(
-            child: tryLogin2 ? vistaRegister('mobile') : vistaLogin('mobile'),
+            child: tryLogin2
+                ? vistaRegister('mobile')
+                : tryLoginGoogleMobile
+                    ? vistaCargando('login')
+                    : vistaLogin('mobile'),
             margin: EdgeInsets.symmetric(horizontal: 10),
           ),
         )));
