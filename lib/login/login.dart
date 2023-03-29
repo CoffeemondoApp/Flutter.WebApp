@@ -682,7 +682,7 @@ class _LoginState extends State<Login> {
   }
 
   Widget vistaLogin(String dispositivo) {
-    var fontSize = dispositivo == "web" ? 22.0 : 16.0;
+    var fontSize = dispositivo == "web" ? 22.0 : 12.0;
     return (AnimatedOpacity(
       duration: Duration(milliseconds: 1000),
       opacity: tryLogin ? 0 : 1,
@@ -724,9 +724,8 @@ class _LoginState extends State<Login> {
     ));
   }
 
-  Widget vistaCargando(String interfaz) {
-    return (Expanded(
-        child: Container(
+  Widget containerCargandoLogin() {
+    return (Container(
       decoration: BoxDecoration(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(40),
@@ -745,7 +744,13 @@ class _LoginState extends State<Login> {
           strokeWidth: 5,
         ),
       ]),
-    )));
+    ));
+  }
+
+  Widget vistaCargando(String interfaz) {
+    return (interfaz == 'web'
+        ? Expanded(child: containerCargandoLogin())
+        : containerCargandoLogin());
   }
 
   Widget tituloRegister(double fontSize) {
@@ -965,7 +970,7 @@ class _LoginState extends State<Login> {
   }
 
   Widget vistaRegister(String dispositivo) {
-    var fontSize = dispositivo == "web" ? 20.0 : 16.0;
+    var fontSize = dispositivo == "web" ? 22.0 : 12.0;
     return (AnimatedOpacity(
       duration: Duration(milliseconds: 500),
       opacity: tryLogin ? 0 : 1,
@@ -1032,7 +1037,7 @@ class _LoginState extends State<Login> {
                     color: Colors.transparent,
                   )
                 : Container(),
-            tryLogin2 ? vistaCargando('login') : Container(),
+            tryLogin2 ? vistaCargando('web') : Container(),
             tryLogin2 || showRegister2 ? logo() : sliderLogo(),
             Container(
               child: (tryLogin || showRegister)
@@ -1068,7 +1073,7 @@ class _LoginState extends State<Login> {
             child: tryLogin2
                 ? vistaRegister('mobile')
                 : tryLoginGoogleMobile
-                    ? vistaCargando('login')
+                    ? vistaCargando('mobile')
                     : vistaLogin('mobile'),
             margin: EdgeInsets.symmetric(horizontal: 10),
           ),
