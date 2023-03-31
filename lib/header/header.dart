@@ -525,8 +525,15 @@ class _HeaderState extends State<Header> {
                         children: (dispositivo == 'PC')
                             ? [
                                 btnMenuNavegacion('COFFEEMONDO', 0, 230),
-                                btnMenuNavegacion('INICIAR SESION', 1, 160),
-                                btnMenuNavegacion('REGISTRARME', 2, 160),
+                                btnMenuNavegacion(
+                                    usuarioLogeado
+                                        ? 'CERRAR SESION'
+                                        : 'INICIAR SESION',
+                                    1,
+                                    160),
+                                usuarioLogeado
+                                    ? Container()
+                                    : btnMenuNavegacion('REGISTRARME', 2, 160),
                                 SizedBox(
                                     width: MediaQuery.of(context).size.width *
                                         0.0000001),

@@ -18,6 +18,7 @@ class _VisionUIState extends State<VisionUI> {
   var colorMorado = Color.fromARGB(0xff, 0x52, 0x01, 0x9b);
 
   //Modulo VisionAI
+  var activeCamera = false;
   var mostrarControl = false;
   var mostrarControl2 = false;
   var mostrarData = false;
@@ -359,16 +360,13 @@ class _VisionUIState extends State<VisionUI> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Container(
-          width: MediaQuery.of(context).size.width * 0.4,
-          height: MediaQuery.of(context).size.height * 0.5,
+          width: MediaQuery.of(context).size.width * 0.47,
+          height: MediaQuery.of(context).size.width * 0.325,
           decoration: BoxDecoration(
             color: Colors.black,
             borderRadius: BorderRadius.circular(40),
           ),
-          child: Container(
-            child: videoPlayer(),
-            height: MediaQuery.of(context).size.width * 0.2,
-          ),
+          child: videoPlayer(),
         ),
         Container(
           width: 250,
@@ -387,7 +385,7 @@ class _VisionUIState extends State<VisionUI> {
           child: Column(children: [
             Container(
               margin: EdgeInsets.symmetric(vertical: 40, horizontal: 30),
-              child: btnsOnOff(),
+              child: switchActiveCamera(),
             ),
             Container(
               margin: EdgeInsets.only(top: 50),
@@ -432,7 +430,7 @@ class _VisionUIState extends State<VisionUI> {
       child: AnimatedContainer(
         duration: Duration(milliseconds: 500),
         curve: Curves.easeInOutBack,
-        height: (mostrarData) ? 700 : 690,
+        height: MediaQuery.of(context).size.height - 120,
         width: 1280,
         decoration: BoxDecoration(
             color: colorScaffold,
@@ -475,51 +473,6 @@ class _VisionUIState extends State<VisionUI> {
                             fontWeight: FontWeight.bold,
                           ),
                         )),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: AnimatedContainer(
-                            duration: Duration(milliseconds: 500),
-                            curve: Curves.easeInOutBack,
-                            width: mostrarData ? 250 : 80,
-                            height: 70,
-                            decoration: BoxDecoration(
-                                color: colorMorado,
-                                borderRadius: BorderRadius.circular(40)),
-                            child: GestureDetector(
-                              onTap: (() {
-                                setState(() {
-                                  mostrarData = !mostrarData;
-                                  mostrarControl2 = false;
-                                });
-                                Future.delayed(
-                                    Duration(
-                                        milliseconds: mostrarData2 ? 50 : 550),
-                                    () {
-                                  setState(() {
-                                    mostrarData2 = !mostrarData2;
-                                    mostrarControl = false;
-                                  });
-                                });
-                              }),
-                              child: mostrarData2
-                                  ? Center(
-                                      child: Text(
-                                        'Estudio de datos',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    )
-                                  : Icon(
-                                      Icons.dataset_outlined,
-                                      color: colorNaranja,
-                                      size: 60,
-                                    ),
-                            ),
-                          ),
-                        ),
                         Align(
                           alignment: Alignment.centerRight,
                           child: AnimatedContainer(
@@ -576,6 +529,55 @@ class _VisionUIState extends State<VisionUI> {
     ));
   }
 
+  Widget switchActiveCamera() {
+    return (Container(
+      //color: Colors.blue,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            child: Text(
+              (dispositivo == 'PC') ? 'Apagar' : 'Apagar camara',
+              style: TextStyle(
+                  color: (dispositivo == 'PC') ? colorMorado : colorNaranja,
+                  fontWeight: FontWeight.bold),
+            ),
+          ),
+          Switch(
+            value: activeCamera,
+            onChanged: (value) {
+              setState(() {
+                setState(() {
+                  activeCamera = value;
+                  mostrarControl = value;
+                  // If the video is playing, pause it.
+                  if (_controller.value.isPlaying) {
+                    _controller.pause();
+                  } else {
+                    // If the video is paused, play it.
+                    _controller.play();
+                  }
+                });
+              });
+            },
+            activeTrackColor: colorMorado,
+            activeColor: colorNaranja,
+            inactiveTrackColor: colorMorado,
+            inactiveThumbColor: colorNaranja,
+          ),
+          Container(
+            child: Text(
+              (dispositivo == 'PC') ? 'Encender' : 'Encender camara',
+              style: TextStyle(
+                  color: (dispositivo == 'PC') ? colorMorado : colorNaranja,
+                  fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    ));
+  }
+
   Widget filaControlCamara() {
     return (Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -583,40 +585,7 @@ class _VisionUIState extends State<VisionUI> {
         Container(
           child: consolaMovimiento(),
         ),
-        Container(
-          //color: Colors.blue,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                child: Text(
-                  'Encender camara',
-                  style: TextStyle(
-                      color: colorNaranja, fontWeight: FontWeight.bold),
-                ),
-              ),
-              Switch(
-                value: mostrarControl,
-                onChanged: (value) {
-                  setState(() {
-                    mostrarControl = value;
-                  });
-                },
-                activeTrackColor: colorNaranja,
-                activeColor: colorMorado,
-                inactiveTrackColor: colorMorado,
-                inactiveThumbColor: colorNaranja,
-              ),
-              Container(
-                child: Text(
-                  'Apagar camara',
-                  style: TextStyle(
-                      color: colorNaranja, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-        ),
+        switchActiveCamera(),
         Container(
           //color: Colors.black,
           child: btnsZoom(),
@@ -629,40 +598,7 @@ class _VisionUIState extends State<VisionUI> {
     return (Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Container(
-          //color: Colors.blue,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                child: Text(
-                  'Encender camara',
-                  style: TextStyle(
-                      color: colorNaranja, fontWeight: FontWeight.bold),
-                ),
-              ),
-              Switch(
-                value: mostrarControl,
-                onChanged: (value) {
-                  setState(() {
-                    mostrarControl = value;
-                  });
-                },
-                activeTrackColor: colorNaranja,
-                activeColor: colorMorado,
-                inactiveTrackColor: colorMorado,
-                inactiveThumbColor: colorNaranja,
-              ),
-              Container(
-                child: Text(
-                  'Apagar camara',
-                  style: TextStyle(
-                      color: colorNaranja, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-        ),
+        switchActiveCamera(),
         Container(
           child: consolaMovimiento(),
         ),

@@ -549,50 +549,6 @@ class _DataUIState extends State<DataUI> {
                             ),
                           ),
                         ),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: AnimatedContainer(
-                            duration: Duration(milliseconds: 500),
-                            curve: Curves.easeInOutBack,
-                            width: mostrarControl ? 250 : 80,
-                            height: 70,
-                            decoration: BoxDecoration(
-                                color: colorMorado,
-                                borderRadius: BorderRadius.circular(40)),
-                            child: GestureDetector(
-                              onTap: (() {
-                                setState(() {
-                                  mostrarControl = !mostrarControl;
-                                  mostrarData2 = false;
-                                });
-                                Future.delayed(
-                                    Duration(
-                                        milliseconds:
-                                            mostrarControl2 ? 50 : 550), () {
-                                  setState(() {
-                                    mostrarControl2 = !mostrarControl2;
-                                    mostrarData = false;
-                                  });
-                                });
-                              }),
-                              child: mostrarControl2
-                                  ? Center(
-                                      child: Text(
-                                        'Camara remota',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    )
-                                  : ImageIcon(
-                                      AssetImage('assets/icon.png'),
-                                      color: colorNaranja,
-                                    ),
-                            ),
-                          ),
-                        )
                       ],
                     )),
                 Container(
