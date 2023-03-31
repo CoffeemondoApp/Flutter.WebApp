@@ -446,7 +446,7 @@ class _DataUIState extends State<DataUI> {
     });
     return Container(
       width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height - 350,
+      height: MediaQuery.of(context).size.height - 300,
       color: Colors.black,
       child: dataStudio(),
     );
@@ -458,7 +458,7 @@ class _DataUIState extends State<DataUI> {
       child: AnimatedContainer(
         duration: Duration(milliseconds: 500),
         curve: Curves.easeInOutBack,
-        height: MediaQuery.of(context).size.height - 150,
+        height: MediaQuery.of(context).size.height - 120,
         width: 1280,
         decoration: BoxDecoration(
             color: colorScaffold,

@@ -343,12 +343,30 @@ class _HeaderState extends State<Header> {
     });
   }
 
+  void cerrarVision() {
+    setState(() {
+      openVision2 = !openVision2;
+    });
+    Future.delayed(Duration(milliseconds: 500), () {
+      openVision = !openVision;
+    });
+  }
+
   void mostrarData() {
     setState(() {
       openData = !openData;
     });
     Future.delayed(Duration(milliseconds: 500), () {
       openData2 = !openData2;
+    });
+  }
+
+  void cerrarData() {
+    setState(() {
+      openData2 = !openData2;
+    });
+    Future.delayed(Duration(milliseconds: 500), () {
+      openData = !openData;
     });
   }
 
@@ -362,8 +380,14 @@ class _HeaderState extends State<Header> {
             setState(() {
               if (index == 0) {
                 mostrarVision();
+                if (openData2) {
+                  cerrarData();
+                }
               } else if (index == 1) {
                 mostrarData();
+                if (openVision2) {
+                  cerrarVision();
+                }
               }
             });
           },
