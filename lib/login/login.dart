@@ -107,7 +107,8 @@ class _LoginState extends State<Login> {
   var checkPassword = false;
   var checkPassword2 = false;
   var sixChars = false;
-  var numberUpperCase = false;
+  var numberPassw = false;
+  var upperCasePassw = false;
   var checkConfirmPassword = false;
   var checkConfirmPassword2 = false;
   var passwordMatch = false;
@@ -416,11 +417,15 @@ class _LoginState extends State<Login> {
             setState(() {
               checkPassword = true;
             });
-            if (value.contains(RegExp(r'[A-Z]')) &&
-                value.contains(RegExp(r'[0-9]'))) {
-              numberUpperCase = true;
+            if (value.contains(RegExp(r'[0-9]'))) {
+              numberPassw = true;
             } else {
-              numberUpperCase = false;
+              numberPassw = false;
+            }
+            if (value.contains(RegExp(r'[A-Z]'))) {
+              upperCasePassw = true;
+            } else {
+              upperCasePassw = false;
             }
 
             if (value.length > 5) {
@@ -504,7 +509,7 @@ class _LoginState extends State<Login> {
   }
 
   void comprobarPassword() {
-    if (sixChars && numberUpperCase) {
+    if (sixChars && numberPassw && upperCasePassw) {
       setState(() {
         checkPassword2 = false;
       });
@@ -800,7 +805,8 @@ class _LoginState extends State<Login> {
         onPressed: () {
           print('Password Match $passwordMatch');
           print('6 chars $sixChars');
-          print('uppercase $numberUpperCase');
+          print('uppercase $upperCasePassw');
+          print('number $numberPassw');
           print(
               'Email valido ${correoController.text != '' && correoController.text.contains('@')}');
           print('Email existe ${correoExisteRegister2}}');
@@ -808,7 +814,8 @@ class _LoginState extends State<Login> {
               'password completed ${passwordController.text != '' && passwordConfirmController.text != ''}');
           if (passwordMatch &&
               sixChars &&
-              numberUpperCase &&
+              numberPassw &&
+              upperCasePassw &&
               correoController.text != '' &&
               correoController.text.contains('@') &&
               !correoExisteRegister2 &&
@@ -855,8 +862,10 @@ class _LoginState extends State<Login> {
               print('Las contrasenas no coinciden');
             } else if (!sixChars) {
               print('La contrasena debe tener 6 caracteres');
-            } else if (!numberUpperCase) {
+            } else if (!upperCasePassw) {
               print('La contrasena debe tener al menos una mayuscula');
+            } else if (!numberPassw) {
+              print('La contrasena debe tener al menos un numero');
             }
           }
         },
@@ -878,7 +887,7 @@ class _LoginState extends State<Login> {
     ));
   }
 
-  Widget columnaErrorPassword(String tipo_error) {
+  Widget columnaErrorPassword(String tipo_error, double fontSize) {
     return (Column(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
@@ -887,12 +896,12 @@ class _LoginState extends State<Login> {
           children: [
             Text(
               'Debes ingresar 6 caracteres',
-              style:
-                  TextStyle(color: colorNaranja, fontWeight: FontWeight.bold),
+              style: TextStyle(color: colorNaranja, fontSize: fontSize),
             ),
             Icon(
               sixChars ? Icons.check_circle : Icons.cancel,
               color: colorNaranja,
+              size: 18,
             )
           ],
         ),
@@ -900,38 +909,52 @@ class _LoginState extends State<Login> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Se requiere un numero y una mayuscula',
-              style:
-                  TextStyle(color: colorNaranja, fontWeight: FontWeight.bold),
+              'Se requiere almenos un numero',
+              style: TextStyle(color: colorNaranja, fontSize: fontSize),
             ),
             Icon(
-              numberUpperCase ? Icons.check_circle : Icons.cancel,
+              numberPassw ? Icons.check_circle : Icons.cancel,
               color: colorNaranja,
+              size: 18,
             )
           ],
         ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Se requiere almenos una mayuscula',
+              style: TextStyle(color: colorNaranja, fontSize: fontSize),
+            ),
+            Icon(
+              upperCasePassw ? Icons.check_circle : Icons.cancel,
+              color: colorNaranja,
+              size: 18,
+            )
+          ],
+        )
       ],
     ));
   }
 
-  Widget errorRegister(String tipo_error) {
+  Widget errorRegister(String tipo_error, double fontSize) {
     return (AnimatedContainer(
       duration: Duration(milliseconds: 500),
       curve: Curves.fastOutSlowIn,
       decoration: BoxDecoration(
           color: colorMorado, borderRadius: BorderRadius.circular(20)),
       height: (mostrarErrorCorreoR && tipo_error == 'email')
-          ? 50
+          ? 40
           : (checkPassword && tipo_error == 'password')
-              ? 100
+              ? 80
               : (checkConfirmPassword && tipo_error == 'confirm_password')
-                  ? 50
+                  ? 40
                   : 0,
       child: Container(
         margin: EdgeInsets.all(10),
         child: tipo_error == 'password'
             ? checkPassword2
-                ? columnaErrorPassword(tipo_error)
+                ? columnaErrorPassword(tipo_error, fontSize)
                 : Container()
             : tipo_error == 'email' && mostrarErrorCorreoR2
                 ? Row(
@@ -939,12 +962,13 @@ class _LoginState extends State<Login> {
                     children: [
                       Text(
                         mensajeErrorCorreoR,
-                        style: TextStyle(
-                            color: colorNaranja, fontWeight: FontWeight.bold),
+                        style:
+                            TextStyle(color: colorNaranja, fontSize: fontSize),
                       ),
                       Icon(
                         Icons.cancel,
                         color: colorNaranja,
+                        size: 18,
                       )
                     ],
                   )
@@ -955,12 +979,12 @@ class _LoginState extends State<Login> {
                           Text(
                             'Las contraseñas deben coincidir',
                             style: TextStyle(
-                                color: colorNaranja,
-                                fontWeight: FontWeight.bold),
+                                color: colorNaranja, fontSize: fontSize),
                           ),
                           Icon(
                             passwordMatch ? Icons.check_circle : Icons.cancel,
                             color: colorNaranja,
+                            size: 18,
                           )
                         ],
                       )
@@ -975,22 +999,16 @@ class _LoginState extends State<Login> {
       duration: Duration(milliseconds: 500),
       opacity: tryLogin ? 0 : 1,
       child: Container(
-          margin: EdgeInsets.only(left: 25, right: 25),
+          margin: EdgeInsets.only(left: 10, right: 10),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                height: 50,
-                child: tituloRegister(fontSize),
-              ),
-              SizedBox(
-                height: 20,
-              ),
+              tituloRegister(fontSize),
               Container(
                 height: 50,
                 child: textFieldCorreo(correoController, fontSize, 'register'),
               ),
-              errorRegister('email'),
+              errorRegister('email', fontSize),
               SizedBox(
                 height: 20,
               ),
@@ -998,7 +1016,7 @@ class _LoginState extends State<Login> {
                   height: 50,
                   child: textFieldPassword(
                       passwordController, fontSize, 'register')),
-              errorRegister('password'),
+              errorRegister('password', fontSize),
               SizedBox(
                 height: 20,
               ),
@@ -1006,7 +1024,7 @@ class _LoginState extends State<Login> {
                   height: 50,
                   child: textFieldConfirmPassword(
                       passwordConfirmController, fontSize)),
-              errorRegister('confirm_password'),
+              errorRegister('confirm_password', fontSize),
               SizedBox(
                 height: 20,
               ),
@@ -1093,8 +1111,8 @@ class _LoginState extends State<Login> {
     });
     //print(ancho_pantalla);
     return (usuarioLogeado)
-        ? VisionUI()
-        : (ancho_pantalla > 1083)
+        ? Container()
+        : (ancho_pantalla > 1315)
             ? loginWeb()
             : loginMobile();
   }

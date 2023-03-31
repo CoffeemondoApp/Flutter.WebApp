@@ -47,9 +47,9 @@ class _indexState extends State<index> {
           },
           children: widget.imagenes,
         ),
-        (usuarioLogeado)
-            ? HeaderLogged(ancho_pantalla, usuarioLogeado)
-            : Header(ancho_pantalla, usuarioLogeado),
+
+        Header(ancho_pantalla, usuarioLogeado),
+
         //(ancho_pantalla > 1180) ? Login() : Container(),
         Container(
           margin: EdgeInsets.symmetric(horizontal: 50),

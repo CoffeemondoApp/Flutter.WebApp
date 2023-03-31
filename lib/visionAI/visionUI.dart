@@ -24,6 +24,7 @@ class _VisionUIState extends State<VisionUI> {
   var mostrarData2 = false;
   var mostrarDataStudio = false;
   var uidCamara = "";
+  var pantalla = 0.0;
   late VideoPlayerController _controller;
   final videoUrl = 'https://www.visionsinc.xyz/hls/test.m3u8';
   void initState() {
@@ -41,6 +42,8 @@ class _VisionUIState extends State<VisionUI> {
       print(e);
     }
   }
+
+  var dispositivo = '';
 
   int maxPositionY(int cantZoom) {
     var maxY = (cantZoom * 5) * 5;
@@ -124,7 +127,8 @@ class _VisionUIState extends State<VisionUI> {
   }
 
   Widget videoPlayer() {
-    return (Center(
+    return (Container(
+      margin: EdgeInsets.symmetric(horizontal: 20),
       child: _controller.value.isInitialized
           ? AspectRatio(
               aspectRatio: _controller.value.aspectRatio,
@@ -178,15 +182,19 @@ class _VisionUIState extends State<VisionUI> {
 
   Widget consolaMovimiento() {
     print(uidCamara);
+    var anchoAlto = 0.0;
+    dispositivo == 'PC' ? anchoAlto = 50 : anchoAlto = 35;
     return (Column(
       children: [
         Container(
+          width: anchoAlto,
+          height: anchoAlto,
           decoration: BoxDecoration(
               color: colorMorado,
               borderRadius: BorderRadius.all(Radius.circular(40))),
           child: IconButton(
               color: colorNaranja,
-              iconSize: 30,
+              iconSize: (dispositivo == 'PC') ? 30 : 17,
               style: ButtonStyle(),
               onPressed: () => InputTB('Up'),
               icon: Icon(Icons.arrow_upward)),
@@ -195,34 +203,40 @@ class _VisionUIState extends State<VisionUI> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
+              width: anchoAlto,
+              height: anchoAlto,
               decoration: BoxDecoration(
                   color: colorMorado,
                   borderRadius: BorderRadius.all(Radius.circular(40))),
               child: IconButton(
                   color: colorNaranja,
-                  iconSize: 30,
+                  iconSize: (dispositivo == 'PC') ? 30 : 17,
                   style: ButtonStyle(),
                   onPressed: () => InputLR('Left'),
                   icon: Icon(Icons.arrow_back)),
             ),
             Container(
+              width: anchoAlto,
+              height: anchoAlto,
               decoration: BoxDecoration(
                   color: colorMorado,
                   borderRadius: BorderRadius.all(Radius.circular(40))),
               child: IconButton(
                   color: colorNaranja,
-                  iconSize: 30,
+                  iconSize: (dispositivo == 'PC') ? 30 : 17,
                   style: ButtonStyle(),
                   onPressed: () => centerCamera(),
                   icon: Icon(Icons.select_all_outlined)),
             ),
             Container(
+              width: anchoAlto,
+              height: anchoAlto,
               decoration: BoxDecoration(
                   color: colorMorado,
                   borderRadius: BorderRadius.all(Radius.circular(40))),
               child: IconButton(
                   color: colorNaranja,
-                  iconSize: 30,
+                  iconSize: (dispositivo == 'PC') ? 30 : 17,
                   style: ButtonStyle(),
                   onPressed: () => InputLR("Right"),
                   icon: Icon(Icons.arrow_forward)),
@@ -230,12 +244,14 @@ class _VisionUIState extends State<VisionUI> {
           ],
         ),
         Container(
+          width: anchoAlto,
+          height: anchoAlto,
           decoration: BoxDecoration(
               color: colorMorado,
               borderRadius: BorderRadius.all(Radius.circular(40))),
           child: IconButton(
               color: colorNaranja,
-              iconSize: 30,
+              iconSize: (dispositivo == 'PC') ? 30 : 17,
               style: ButtonStyle(),
               onPressed: () => InputTB("Down"),
               icon: Icon(Icons.arrow_downward)),
@@ -245,6 +261,10 @@ class _VisionUIState extends State<VisionUI> {
   }
 
   Widget btnsZoom() {
+    var anchoAlto = 0.0;
+    var iconSize = (dispositivo == 'PC') ? 30.0 : 17.0;
+
+    dispositivo == 'PC' ? anchoAlto = 50 : anchoAlto = 35;
     void zoom(String value) async {
       final ref = FirebaseDatabase.instance.ref();
       final stream = ref.child('live').child('zoomInput').onValue;
@@ -297,26 +317,35 @@ class _VisionUIState extends State<VisionUI> {
     }
 
     return (Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: pantalla < 1031
+          ? MainAxisAlignment.center
+          : MainAxisAlignment.spaceBetween,
       children: [
         Container(
+          width: anchoAlto,
+          height: anchoAlto,
           decoration: BoxDecoration(
               color: colorMorado,
               borderRadius: BorderRadius.all(Radius.circular(40))),
           child: IconButton(
               color: colorNaranja,
-              iconSize: 30,
+              iconSize: iconSize,
               style: ButtonStyle(),
               onPressed: () => zoom('zoom+'),
               icon: Icon(Icons.zoom_in_outlined)),
         ),
+        SizedBox(
+          width: (dispositivo == 'PC') ? 30 : 10,
+        ),
         Container(
+          width: anchoAlto,
+          height: anchoAlto,
           decoration: BoxDecoration(
               color: colorMorado,
               borderRadius: BorderRadius.all(Radius.circular(40))),
           child: IconButton(
               color: colorNaranja,
-              iconSize: 30,
+              iconSize: iconSize,
               style: ButtonStyle(),
               onPressed: () => zoom('zoom-'),
               icon: Icon(Icons.zoom_out_outlined)),
@@ -336,7 +365,10 @@ class _VisionUIState extends State<VisionUI> {
             color: Colors.black,
             borderRadius: BorderRadius.circular(40),
           ),
-          child: videoPlayer(),
+          child: Container(
+            child: videoPlayer(),
+            height: MediaQuery.of(context).size.width * 0.2,
+          ),
         ),
         Container(
           width: 250,
@@ -394,9 +426,8 @@ class _VisionUIState extends State<VisionUI> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
+  Widget vistaWeb() {
+    return (Dialog(
       backgroundColor: Color.fromARGB(0, 0, 0, 0),
       child: AnimatedContainer(
         duration: Duration(milliseconds: 500),
@@ -542,7 +573,157 @@ class _VisionUIState extends State<VisionUI> {
               ],
             )),
       ),
-    );
+    ));
+  }
+
+  Widget filaControlCamara() {
+    return (Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Container(
+          child: consolaMovimiento(),
+        ),
+        Container(
+          //color: Colors.blue,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                child: Text(
+                  'Encender camara',
+                  style: TextStyle(
+                      color: colorNaranja, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Switch(
+                value: mostrarControl,
+                onChanged: (value) {
+                  setState(() {
+                    mostrarControl = value;
+                  });
+                },
+                activeTrackColor: colorNaranja,
+                activeColor: colorMorado,
+                inactiveTrackColor: colorMorado,
+                inactiveThumbColor: colorNaranja,
+              ),
+              Container(
+                child: Text(
+                  'Apagar camara',
+                  style: TextStyle(
+                      color: colorNaranja, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          //color: Colors.black,
+          child: btnsZoom(),
+        )
+      ],
+    ));
+  }
+
+  Widget columnaControlCamara() {
+    return (Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Container(
+          //color: Colors.blue,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                child: Text(
+                  'Encender camara',
+                  style: TextStyle(
+                      color: colorNaranja, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Switch(
+                value: mostrarControl,
+                onChanged: (value) {
+                  setState(() {
+                    mostrarControl = value;
+                  });
+                },
+                activeTrackColor: colorNaranja,
+                activeColor: colorMorado,
+                inactiveTrackColor: colorMorado,
+                inactiveThumbColor: colorNaranja,
+              ),
+              Container(
+                child: Text(
+                  'Apagar camara',
+                  style: TextStyle(
+                      color: colorNaranja, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          child: consolaMovimiento(),
+        ),
+        btnsZoom(),
+      ],
+    ));
+  }
+
+  Widget vistaMobile() {
+    return (Container(
+      width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height - 50,
+      decoration: BoxDecoration(color: colorScaffold),
+      child: Container(
+        margin: EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                  color: colorMorado,
+                  borderRadius: BorderRadius.all(Radius.circular(20))),
+              child: Container(
+                margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                child: Text(
+                  'Vision con inteligencia artificial',
+                  style: TextStyle(
+                      color: colorNaranja, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.all(20),
+              height: MediaQuery.of(context).size.width * 0.6,
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: videoPlayer(),
+            ),
+            (pantalla < 882) ? columnaControlCamara() : filaControlCamara(),
+          ],
+        ),
+      ),
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ancho_pantalla = MediaQuery.of(context).size.width;
+    setState(() {
+      pantalla = ancho_pantalla;
+    });
+    print(pantalla);
+    setState(() {
+      if (ancho_pantalla > 1130) {
+        dispositivo = 'PC';
+      } else {
+        dispositivo = 'MOVIL';
+      }
+    });
+    return (dispositivo == 'PC') ? vistaWeb() : vistaMobile();
   }
 
   @override
