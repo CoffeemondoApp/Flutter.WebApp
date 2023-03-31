@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:prueba/header/header.dart';
-import 'package:prueba/header/header_logged.dart';
 
 import 'package:prueba/login/login.dart';
 

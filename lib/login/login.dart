@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:prueba/autenticacion.dart';
-import 'package:prueba/visionAI/visionUI.dart';
 
 import '../../firebase_options.dart';
 import 'package:flutter/material.dart';

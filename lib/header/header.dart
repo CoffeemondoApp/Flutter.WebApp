@@ -8,7 +8,9 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:prueba/autenticacion.dart';
 import 'package:prueba/login/login.dart';
 import 'package:prueba/sliderImagenesHeader/dataFrame.dart';
-import 'package:prueba/visionAI/visionUI.dart';
+import 'package:prueba/ventanas/dataUI.dart';
+
+import 'package:prueba/ventanas/visionUI.dart';
 
 class Header extends StatefulWidget {
   final double ancho_pantalla;
@@ -45,6 +47,9 @@ class _HeaderState extends State<Header> {
 
   var openVision = false;
   var openVision2 = false;
+
+  var openData = false;
+  var openData2 = false;
 
   String dispositivo = '';
   Widget logoMenu() {
@@ -197,6 +202,15 @@ class _HeaderState extends State<Header> {
     print('Ha cerrado sesion');
   }
 
+  void abrirLogin() {
+    setState(() {
+      openLogin = !openLogin;
+      Future.delayed(Duration(milliseconds: 500), () {
+        openLogin2 = !openLogin2;
+      });
+    });
+  }
+
   Widget btnMenuNavegacion(String btnText, int index, double ancho) {
     var radiusCircularbtn = 10.0;
     return (Container(
@@ -207,10 +221,9 @@ class _HeaderState extends State<Header> {
               onTap: () {
                 setState(() {
                   if (btnText == 'INGRESAR AL PORTAL') {
-                    openLogin = !openLogin;
-                    Future.delayed(Duration(milliseconds: 500), () {
-                      openLogin2 = !openLogin2;
-                    });
+                    abrirLogin();
+                  } else if (btnText == 'INICIAR SESION') {
+                    abrirLogin();
                   } else if (btnText == 'CERRAR SESION') {
                     signOut();
                   }
@@ -269,7 +282,13 @@ class _HeaderState extends State<Header> {
             )),
             onTap: () {
               setState(() {
-                openLogin = !openLogin;
+                if (btnText == 'INGRESAR AL PORTAL') {
+                  abrirLogin();
+                } else if (btnText == 'INICIAR SESION') {
+                  abrirLogin();
+                } else if (btnText == 'CERRAR SESION') {
+                  signOut();
+                }
               });
             },
             onHover: (value) {
@@ -324,6 +343,15 @@ class _HeaderState extends State<Header> {
     });
   }
 
+  void mostrarData() {
+    setState(() {
+      openData = !openData;
+    });
+    Future.delayed(Duration(milliseconds: 500), () {
+      openData2 = !openData2;
+    });
+  }
+
   Widget btnSideBar(String btnText, IconData icono, int index) {
     return (Container(
         width: 130,
@@ -334,6 +362,8 @@ class _HeaderState extends State<Header> {
             setState(() {
               if (index == 0) {
                 mostrarVision();
+              } else if (index == 1) {
+                mostrarData();
               }
             });
           },
@@ -347,7 +377,15 @@ class _HeaderState extends State<Header> {
                   style: ButtonStyle(
                       backgroundColor:
                           MaterialStateProperty.all(Colors.transparent)),
-                  onPressed: () {},
+                  onPressed: () {
+                    setState(() {
+                      if (index == 0) {
+                        mostrarVision();
+                      } else if (index == 1) {
+                        mostrarData();
+                      }
+                    });
+                  },
                   child: Icon(icono, color: colorMorado),
                 ),
                 Text(btnText,
@@ -503,6 +541,13 @@ class _HeaderState extends State<Header> {
                           opacity: openVision2 ? 1 : 0,
                           duration: Duration(milliseconds: 500),
                           child: VisionUI(),
+                        )
+                      : Container(),
+                  openData
+                      ? AnimatedOpacity(
+                          opacity: openData2 ? 1 : 0,
+                          duration: Duration(milliseconds: 500),
+                          child: DataUI(),
                         )
                       : Container(),
                   AnimatedContainer(

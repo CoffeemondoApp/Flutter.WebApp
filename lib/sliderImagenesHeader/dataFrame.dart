@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:prueba/header/header.dart';
-import 'package:prueba/header/header_logged.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 
 import 'package:prueba/login/login.dart';
@@ -62,9 +61,7 @@ class _dataFrameState extends State<dataFrame> {
           },
           children: widget.imagenes,
         ),
-        (usuarioLogeado)
-            ? HeaderLogged(ancho_pantalla, usuarioLogeado)
-            : Header(ancho_pantalla, usuarioLogeado),
+        Header(ancho_pantalla, usuarioLogeado),
         //(ancho_pantalla > 1180) ? Login() : Container(),
         Container(
           child: Center(child: dataStudio()),
