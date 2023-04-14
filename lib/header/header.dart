@@ -57,6 +57,10 @@ class _HeaderState extends State<Header> {
   var mostrarMenuResena2 = false;
   var mostrarMenuServicio = false;
   var mostrarMenuServicio2 = false;
+  var mostrarMenuEvento = false;
+  var mostrarMenuEvento2 = false;
+  var mostrarMenuCuenta = false;
+  var mostrarMenuCuenta2 = false;
 
   List<dynamic> activarSubMenuBtnSSB = ['', false, false];
 
@@ -247,6 +251,8 @@ class _HeaderState extends State<Header> {
       if (menu == 'Cafeterias') {
         mostrarMenuCafeteria = true;
         cerrarSubMenu('Reseñas');
+        cerrarSubMenu('Servicios');
+        cerrarSubMenu('Eventos');
         Future.delayed(Duration(milliseconds: 500), () {
           mostrarMenuCafeteria2 = true;
         });
@@ -254,6 +260,7 @@ class _HeaderState extends State<Header> {
         mostrarMenuResena = true;
         cerrarSubMenu('Cafeterias');
         cerrarSubMenu('Servicios');
+        cerrarSubMenu('Eventos');
         Future.delayed(Duration(milliseconds: 500), () {
           mostrarMenuResena2 = true;
         });
@@ -261,8 +268,28 @@ class _HeaderState extends State<Header> {
         mostrarMenuServicio = true;
         cerrarSubMenu('Cafeterias');
         cerrarSubMenu('Reseñas');
+        cerrarSubMenu('Eventos');
+        cerrarSubMenu('Mi cuenta');
         Future.delayed(Duration(milliseconds: 500), () {
           mostrarMenuServicio2 = true;
+        });
+      } else if (menu == 'Eventos') {
+        mostrarMenuEvento = true;
+        cerrarSubMenu('Cafeterias');
+        cerrarSubMenu('Reseñas');
+        cerrarSubMenu('Servicios');
+        cerrarSubMenu('Mi cuenta');
+        Future.delayed(Duration(milliseconds: 500), () {
+          mostrarMenuEvento2 = true;
+        });
+      } else if (menu == 'Mi cuenta') {
+        mostrarMenuCuenta = true;
+        cerrarSubMenu('Cafeterias');
+        cerrarSubMenu('Reseñas');
+        cerrarSubMenu('Servicios');
+        cerrarSubMenu('Eventos');
+        Future.delayed(Duration(milliseconds: 500), () {
+          mostrarMenuCuenta2 = true;
         });
       }
     });
@@ -284,6 +311,16 @@ class _HeaderState extends State<Header> {
         mostrarMenuServicio2 = false;
         Future.delayed(Duration(milliseconds: 100), () {
           mostrarMenuServicio = false;
+        });
+      } else if (menu == 'Eventos') {
+        mostrarMenuEvento2 = false;
+        Future.delayed(Duration(milliseconds: 100), () {
+          mostrarMenuEvento = false;
+        });
+      } else if (menu == 'Mi cuenta') {
+        mostrarMenuCuenta2 = false;
+        Future.delayed(Duration(milliseconds: 100), () {
+          mostrarMenuCuenta = false;
         });
       }
     });
@@ -384,20 +421,44 @@ class _HeaderState extends State<Header> {
         child: InkWell(
           onHover: (value) => {
             print(value),
-            setState(() {
-              disparadorBtnSideBar(menu, value);
-            }),
+            dispositivo == 'PC' ? disparadorBtnSideBar(menu, value) : null
           },
           onTap: () {
-            setState(() {
-              if (menu == 'Cafeterias') {
-                dispositivo != 'PC' ? abrirSubMenu(menu) : cerrarSubMenu(menu);
-              } else if ((menu == 'Cerrar sesion')) {
-                cerrarSesion();
-              } else if (menu == 'Iniciar sesion') {
-                openLogin2 ? cerrarLogin() : abrirLogin();
-              }
-            });
+            if (menu == 'Cafeterias') {
+              dispositivo != 'PC'
+                  ? mostrarMenuCafeteria
+                      ? cerrarSubMenu(menu)
+                      : abrirSubMenu(menu)
+                  : cerrarSubMenu(menu);
+            } else if (menu == 'Reseñas') {
+              dispositivo != 'PC'
+                  ? mostrarMenuResena
+                      ? cerrarSubMenu(menu)
+                      : abrirSubMenu(menu)
+                  : cerrarSubMenu(menu);
+            } else if (menu == 'Servicios') {
+              dispositivo != 'PC'
+                  ? mostrarMenuServicio
+                      ? cerrarSubMenu(menu)
+                      : abrirSubMenu(menu)
+                  : cerrarSubMenu(menu);
+            } else if (menu == 'Eventos') {
+              dispositivo != 'PC'
+                  ? mostrarMenuEvento
+                      ? cerrarSubMenu(menu)
+                      : abrirSubMenu(menu)
+                  : cerrarSubMenu(menu);
+            } else if (menu == 'Mi cuenta') {
+              dispositivo != 'PC'
+                  ? mostrarMenuCuenta
+                      ? cerrarSubMenu(menu)
+                      : abrirSubMenu(menu)
+                  : cerrarSubMenu(menu);
+            } else if ((menu == 'Cerrar sesion')) {
+              cerrarSesion();
+            } else if (menu == 'Iniciar sesion') {
+              openLogin2 ? cerrarLogin() : abrirLogin();
+            }
           },
           child: Container(
             decoration: BoxDecoration(
@@ -410,13 +471,41 @@ class _HeaderState extends State<Header> {
                       backgroundColor:
                           MaterialStateProperty.all(Colors.transparent)),
                   onPressed: () {
-                    setState(() {
-                      if (menu == 'Cafeterias') {
-                        dispositivo != 'PC'
-                            ? abrirSubMenu(menu)
-                            : cerrarSubMenu(menu);
-                      }
-                    });
+                    if (menu == 'Cafeterias') {
+                      dispositivo != 'PC'
+                          ? mostrarMenuCafeteria
+                              ? cerrarSubMenu(menu)
+                              : abrirSubMenu(menu)
+                          : cerrarSubMenu(menu);
+                    } else if (menu == 'Reseñas') {
+                      dispositivo != 'PC'
+                          ? mostrarMenuResena
+                              ? cerrarSubMenu(menu)
+                              : abrirSubMenu(menu)
+                          : cerrarSubMenu(menu);
+                    } else if (menu == 'Servicios') {
+                      dispositivo != 'PC'
+                          ? mostrarMenuServicio
+                              ? cerrarSubMenu(menu)
+                              : abrirSubMenu(menu)
+                          : cerrarSubMenu(menu);
+                    } else if (menu == 'Eventos') {
+                      dispositivo != 'PC'
+                          ? mostrarMenuEvento
+                              ? cerrarSubMenu(menu)
+                              : abrirSubMenu(menu)
+                          : cerrarSubMenu(menu);
+                    } else if (menu == 'Mi cuenta') {
+                      dispositivo != 'PC'
+                          ? mostrarMenuCuenta
+                              ? cerrarSubMenu(menu)
+                              : abrirSubMenu(menu)
+                          : cerrarSubMenu(menu);
+                    } else if ((menu == 'Cerrar sesion')) {
+                      cerrarSesion();
+                    } else if (menu == 'Iniciar sesion') {
+                      openLogin2 ? cerrarLogin() : abrirLogin();
+                    }
                   },
                   child: Icon(icono, color: colorMorado),
                 ),
@@ -464,7 +553,7 @@ class _HeaderState extends State<Header> {
               height: 30,
             ),
             usuarioLogeado
-                ? btnSideBar('Perfil', Icons.manage_accounts)
+                ? btnSideBar('Mi cuenta', Icons.manage_accounts)
                 : btnSideBar('Iniciar sesion', Icons.login),
             SizedBox(
               height: 30,
@@ -537,8 +626,8 @@ class _HeaderState extends State<Header> {
 
   Widget btnSubSubSideBar(String menu) {
     return (Container(
-      width: (dispositivo == 'PC') ? 190 : 90,
-      height: (dispositivo == 'PC') ? 30 : 20,
+      width: (dispositivo == 'PC') ? 190 : 120,
+      height: (dispositivo == 'PC') ? 40 : 30,
       child: ElevatedButton(
         onPressed: () {},
         child: Text(menu,
@@ -557,6 +646,14 @@ class _HeaderState extends State<Header> {
   }
 
   Widget btnSubSideBar(String btnText, int index, bool tieneSubMenu) {
+    String ucFirst(String str) {
+      if (str == null || str.isEmpty) {
+        return "";
+      } else {
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+      }
+    }
+
     return AnimatedContainer(
       curve: Curves.easeInOutCubic,
       duration: Duration(milliseconds: 300),
@@ -565,12 +662,14 @@ class _HeaderState extends State<Header> {
               color: colorMorado,
               borderRadius: BorderRadius.all(Radius.circular(20)))
           : null,
-      width: (dispositivo == 'PC') ? 210 : 100,
-      height: (dispositivo == 'PC')
-          ? activarSubMenuBtnSSB[1] && activarSubMenuBtnSSB[0] == btnText
+      width: (dispositivo == 'PC') ? 210 : 130,
+      height: activarSubMenuBtnSSB[1] && activarSubMenuBtnSSB[0] == btnText
+          ? dispositivo == 'PC'
               ? 200
-              : 56
-          : 36,
+              : 150
+          : dispositivo == 'PC'
+              ? 56
+              : 36,
       child: (activarSubMenuBtnSSB[2] && activarSubMenuBtnSSB[0] == btnText)
           ? Column(
               children: [
@@ -612,9 +711,12 @@ class _HeaderState extends State<Header> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      btnSubSubSideBar('Mis reseñas'),
-                      btnSubSubSideBar('Reseñas guardadas'),
-                      btnSubSubSideBar('Todas las reseñas'),
+                      btnSubSubSideBar(
+                          'Mis ${btnText.split(' ')[1].toLowerCase()}'),
+                      btnSubSubSideBar(
+                          '${ucFirst(btnText.split(' ')[1])} ${btnText.split(' ')[1] == 'eventos' ? 'guardados' : 'guardadas'}'),
+                      btnSubSubSideBar(
+                          '${btnText.split(' ')[1] == 'eventos' ? 'Todos' : 'Todas'} las ${btnText.split(' ')[1].toLowerCase()}'),
                     ],
                   ),
                 )
@@ -657,6 +759,7 @@ class _HeaderState extends State<Header> {
   }
 
   Widget menuSubSideBar(String menu) {
+    double altoEspaciador = dispositivo == 'PC' ? 30 : 10;
     return Container(
         margin: EdgeInsets.symmetric(vertical: 50),
         child: menu == 'Cafeterias'
@@ -664,7 +767,7 @@ class _HeaderState extends State<Header> {
                 children: [
                   btnSubSideBar('Ver cafeterias', 0, false),
                   SizedBox(
-                    height: 30,
+                    height: altoEspaciador,
                   ),
                   btnSubSideBar('Crear cafeteria', 1, false)
                 ],
@@ -674,7 +777,7 @@ class _HeaderState extends State<Header> {
                     children: [
                       btnSubSideBar('Ver reseñas', 0, true),
                       SizedBox(
-                        height: 30,
+                        height: altoEspaciador,
                       ),
                       btnSubSideBar('Crear reseña', 1, false)
                     ],
@@ -684,22 +787,50 @@ class _HeaderState extends State<Header> {
                         children: [
                           btnSubSideBar('Vision AI', 0, false),
                           SizedBox(
-                            height: 30,
+                            height: altoEspaciador,
                           ),
                           btnSubSideBar('Data Studio', 1, false)
                         ],
                       )
-                    : Container());
+                    : menu == 'Eventos'
+                        ? Column(
+                            children: [
+                              btnSubSideBar('Ver eventos', 0, true),
+                              SizedBox(
+                                height: altoEspaciador,
+                              ),
+                              btnSubSideBar('Crear evento', 1, false)
+                            ],
+                          )
+                        : menu == 'Mi cuenta'
+                            ? Column(
+                                children: [
+                                  btnSubSideBar('Mi perfil', 0, true),
+                                  SizedBox(
+                                    height: altoEspaciador,
+                                  ),
+                                  btnSubSideBar('Mis entradas', 1, false),
+                                  SizedBox(
+                                    height: altoEspaciador,
+                                  ),
+                                  btnSubSideBar('Mis ajustes', 1, false)
+                                ],
+                              )
+                            : Container());
   }
 
   Widget containerSubSideBar() {
     return (AnimatedContainer(
       curve: Curves.decelerate,
       duration: Duration(milliseconds: 300),
-      width: (mostrarMenuCafeteria || mostrarMenuResena || mostrarMenuServicio)
+      width: (mostrarMenuCafeteria ||
+              mostrarMenuResena ||
+              mostrarMenuServicio ||
+              mostrarMenuEvento ||
+              mostrarMenuCuenta)
           ? (dispositivo == 'PC')
               ? 220
-              : 130
+              : 140
           : 0,
       height: (dispositivo == 'PC')
           ? MediaQuery.of(context).size.height
@@ -725,7 +856,11 @@ class _HeaderState extends State<Header> {
               ? menuSubSideBar('Reseñas')
               : mostrarMenuServicio2
                   ? menuSubSideBar('Servicios')
-                  : Container(),
+                  : mostrarMenuEvento2
+                      ? menuSubSideBar('Eventos')
+                      : mostrarMenuCuenta2
+                          ? menuSubSideBar('Mi cuenta')
+                          : Container(),
     ));
   }
 
@@ -785,17 +920,21 @@ class _HeaderState extends State<Header> {
                 setState(() {
                   hoverSubSideBar = value;
                 });
-                if (!hoverSubSideBar) {
+                if (!hoverSubSideBar && dispositivo == 'PC') {
                   setState(() {
                     mostrarMenuCafeteria2 = false;
                     mostrarMenuResena2 = false;
                     mostrarMenuServicio2 = false;
+                    mostrarMenuEvento2 = false;
+                    mostrarMenuCuenta2 = false;
                   });
                   Future.delayed(Duration(milliseconds: 300), () {
                     setState(() {
                       mostrarMenuCafeteria = false;
                       mostrarMenuResena = false;
                       mostrarMenuServicio = false;
+                      mostrarMenuEvento = false;
+                      mostrarMenuCuenta = false;
                     });
                   });
                 }
