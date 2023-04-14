@@ -51,7 +51,7 @@ class _indexState extends State<index> {
 
         //(ancho_pantalla > 1180) ? Login() : Container(),
         Container(
-          margin: EdgeInsets.symmetric(horizontal: 50),
+          margin: EdgeInsets.symmetric(horizontal: 150),
           alignment: Alignment.center,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
