@@ -62,6 +62,8 @@ class _HeaderState extends State<Header> {
   var mostrarMenuCuenta = false;
   var mostrarMenuCuenta2 = false;
 
+  var mostrarVisionAI = false;
+
   List<dynamic> activarSubMenuBtnSSB = ['', false, false];
 
   var hoverSideBar = false;
@@ -621,6 +623,14 @@ class _HeaderState extends State<Header> {
           activarSubMenuBtnSSB[2] = true;
         });
       });
+    } else {
+      if (menu == 'Data Studio') {
+        mostrarData();
+        cerrarVision();
+      } else if (menu == 'Vision AI') {
+        mostrarVision();
+        cerrarData();
+      }
     }
   }
 
@@ -634,7 +644,7 @@ class _HeaderState extends State<Header> {
             style: TextStyle(
                 color: colorMorado,
                 fontFamily: 'Impact',
-                fontSize: dispositivo == 'PC' ? 18 : 10,
+                fontSize: dispositivo == 'PC' ? 16 : 10,
                 fontWeight: FontWeight.bold)),
         style: ButtonStyle(
             shadowColor: MaterialStateProperty.all(colorNaranja),
@@ -645,7 +655,7 @@ class _HeaderState extends State<Header> {
     ));
   }
 
-  Widget btnSubSideBar(String btnText, int index, bool tieneSubMenu) {
+  Widget btnSubSideBar(String btnText, bool tieneSubMenu) {
     String ucFirst(String str) {
       if (str == null || str.isEmpty) {
         return "";
@@ -765,55 +775,55 @@ class _HeaderState extends State<Header> {
         child: menu == 'Cafeterias'
             ? Column(
                 children: [
-                  btnSubSideBar('Ver cafeterias', 0, false),
+                  btnSubSideBar('Ver cafeterias', true),
                   SizedBox(
                     height: altoEspaciador,
                   ),
-                  btnSubSideBar('Crear cafeteria', 1, false)
+                  btnSubSideBar('Crear cafeteria', false)
                 ],
               )
             : menu == 'Reseñas'
                 ? Column(
                     children: [
-                      btnSubSideBar('Ver reseñas', 0, true),
+                      btnSubSideBar('Ver reseñas', true),
                       SizedBox(
                         height: altoEspaciador,
                       ),
-                      btnSubSideBar('Crear reseña', 1, false)
+                      btnSubSideBar('Crear reseña', false)
                     ],
                   )
                 : menu == 'Servicios'
                     ? Column(
                         children: [
-                          btnSubSideBar('Vision AI', 0, false),
+                          btnSubSideBar('Vision AI', false),
                           SizedBox(
                             height: altoEspaciador,
                           ),
-                          btnSubSideBar('Data Studio', 1, false)
+                          btnSubSideBar('Data Studio', false)
                         ],
                       )
                     : menu == 'Eventos'
                         ? Column(
                             children: [
-                              btnSubSideBar('Ver eventos', 0, true),
+                              btnSubSideBar('Ver eventos', true),
                               SizedBox(
                                 height: altoEspaciador,
                               ),
-                              btnSubSideBar('Crear evento', 1, false)
+                              btnSubSideBar('Crear evento', false)
                             ],
                           )
                         : menu == 'Mi cuenta'
                             ? Column(
                                 children: [
-                                  btnSubSideBar('Mi perfil', 0, true),
+                                  btnSubSideBar('Mi perfil', true),
                                   SizedBox(
                                     height: altoEspaciador,
                                   ),
-                                  btnSubSideBar('Mis entradas', 1, false),
+                                  btnSubSideBar('Mis entradas', false),
                                   SizedBox(
                                     height: altoEspaciador,
                                   ),
-                                  btnSubSideBar('Mis ajustes', 1, false)
+                                  btnSubSideBar('Mis ajustes', false)
                                 ],
                               )
                             : Container());
