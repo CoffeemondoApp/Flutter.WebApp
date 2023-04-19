@@ -13,15 +13,15 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter_web/google_maps_flutter_web.dart';
 
-class CafeteriasUI extends StatefulWidget {
+class ResenasUI extends StatefulWidget {
   final tipoUI;
-  const CafeteriasUI({required this.tipoUI});
+  const ResenasUI({required this.tipoUI});
 
   @override
-  _CafeteriasUIState createState() => _CafeteriasUIState();
+  _ResenasUIState createState() => _ResenasUIState();
 }
 
-class _CafeteriasUIState extends State<CafeteriasUI> {
+class _ResenasUIState extends State<ResenasUI> {
   var colorScaffold = Color(0xffffebdcac);
   var colorNaranja = Color.fromARGB(255, 255, 79, 52);
   var colorMorado = Color.fromARGB(0xff, 0x52, 0x01, 0x9b);
@@ -35,133 +35,132 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
   var mostrarNombre2 = false;
   var uidCamara = "";
   var pantalla = 0.0;
-  var cafeteriasGuardadas = [];
-  var cafeteriasKeys = [];
-  var listaCafeterias = [];
+  var resenasGuardadas = [];
+  var resenasKeys = [];
+  var listaResenas = [];
 
   var dispositivo = '';
 
-  var btnCafeteriaHovered = ['', false];
+  var btnResenaHovered = ['', false];
 
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  Future<List<dynamic>?> obtenerCafeteriasGuardadas() async {
+  Future<List<dynamic>?> obtenerResenasGuardadas() async {
     User? user = FirebaseAuth.instance.currentUser;
     firestore.collection('users').doc(user?.uid).get().then((value) {
-      print(value.data()!['cafeteriasGuardadas']);
+      print(value.data()!['reseñasGuardadas']);
       setState(() {
-        cafeteriasGuardadas = value.data()!['cafeteriasGuardadas'];
+        resenasGuardadas = value.data()!['reseñasGuardadas'];
       });
     });
   }
 
-  List<dynamic> listaCafeteriasGuardadas(String accion, String uidCafeteria) {
-    var lista = cafeteriasGuardadas;
-    print('UID Cafeteria: ' + uidCafeteria);
+  List<dynamic> listaResenasGuardadas(String accion, String uidResena) {
+    var lista = resenasGuardadas;
+    print('UID Reseña: ' + uidResena);
     if (accion == 'agregar') {
-      lista.add(uidCafeteria);
+      lista.add(uidResena);
     } else {
-      lista.remove(uidCafeteria);
+      lista.remove(uidResena);
     }
     print(lista);
     return lista;
   }
 
-  Future<void> subirFavoritos(String uidCafeteria) async {
+  Future<void> subirFavoritos(String uidResena) async {
     try {
       // Importante: Este tipo de declaracion se utiliza para solamente actualizar la informacion solicitada y no manipular informacion adicional, como lo es la imagen y esto permite no borrar otros datos importantes
       User? user = FirebaseAuth.instance.currentUser;
-      print(uidCafeteria);
-      print(cafeteriasGuardadas);
+      print(uidResena);
+      print(resenasGuardadas);
       // Se busca la coleccion 'users' de la BD de Firestore en donde el uid sea igual al del usuario actual
       final DocumentReference docRef =
           FirebaseFirestore.instance.collection("users").doc(user?.uid);
-      // Se actualiza la informacion del usuario actual mediante los controladores, que son los campos de informacion que el usuario debe rellenar
 
       docRef.update({
-        'cafeteriasGuardadas': FieldValue.arrayUnion([uidCafeteria])
+        'reseñasGuardadas': FieldValue.arrayUnion([uidResena])
       });
       print('Ingreso de informacion exitoso.');
-      obtenerCafeteriasGuardadas();
+      obtenerResenasGuardadas();
       // Una vez actualizada la informacion, se devuelve a InfoUser para mostrar su nueva informacion
     } catch (e) {
       print("Error al intentar ingresar informacion");
     }
   }
 
-  Future<void> borrarFavoritos(String UidCafeteria) async {
+  Future<void> borrarFavoritos(String uidResena) async {
     try {
       // Importante: Este tipo de declaracion se utiliza para solamente actualizar la informacion solicitada y no manipular informacion adicional, como lo es la imagen y esto permite no borrar otros datos importantes
       User? user = FirebaseAuth.instance.currentUser;
-      print(UidCafeteria);
-      print(cafeteriasGuardadas);
+      print(uidResena);
+      print(resenasGuardadas);
       // Se busca la coleccion 'users' de la BD de Firestore en donde el uid sea igual al del usuario actual
       final DocumentReference docRef =
           FirebaseFirestore.instance.collection("users").doc(user?.uid);
       // Se actualiza la informacion del usuario actual mediante los controladores, que son los campos de informacion que el usuario debe rellenar
 
       docRef.update({
-        'cafeteriasGuardadas': FieldValue.arrayRemove([UidCafeteria])
+        'resenasGuardadas': FieldValue.arrayRemove([uidResena])
       });
       print('Ingreso de informacion exitoso.');
-      obtenerCafeteriasGuardadas();
+      obtenerResenasGuardadas();
       // Una vez actualizada la informacion, se devuelve a InfoUser para mostrar su nueva informacion
     } catch (e) {
       print("Error al intentar ingresar informacion");
     }
   }
 
-  //Obtengo toda la informacion de la coleccion cafeterias
+  //Obtengo toda la informacion de la coleccion reseñas
   CollectionReference _collectionRef =
-      FirebaseFirestore.instance.collection('cafeterias');
+      FirebaseFirestore.instance.collection('resenas');
 
-  Future<List<Map<String, dynamic>>> getCafeteriasData() async {
+  Future<List<Map<String, dynamic>>> getResenasData() async {
     User? user = FirebaseAuth.instance.currentUser;
 
-    QuerySnapshot cafeteriasQuerySnapshot = await _collectionRef.get();
-    List<Map<String, dynamic>> cafeteriasDataList = [];
-    for (var doc in cafeteriasQuerySnapshot.docs) {
+    QuerySnapshot resenasQuerySnapshot = await _collectionRef.get();
+    List<Map<String, dynamic>> resenasDataList = [];
+    for (var doc in resenasQuerySnapshot.docs) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      widget.tipoUI == 'Mis cafeterias'
+      widget.tipoUI == 'Mis reseñas'
           ? (data['creador'] == user?.uid)
-              ? {cafeteriasDataList.add(data)}
+              ? {resenasDataList.add(data)}
               : null
-          : widget.tipoUI == 'Cafeterias guardadas'
-              ? cafeteriasGuardadas.contains(doc.id)
-                  ? cafeteriasDataList.add(data)
+          : widget.tipoUI == 'Reseñas guardadas'
+              ? resenasDataList.contains(doc.id)
+                  ? resenasDataList.add(data)
                   : null
-              : cafeteriasDataList.add(data);
+              : resenasDataList.add(data);
     }
     setState(() {
-      listaCafeterias = cafeteriasDataList;
+      listaResenas = resenasDataList;
     });
-    return cafeteriasDataList;
+    return resenasDataList;
   }
 
-  Future<List<dynamic>> getCafeteriasKeys() async {
+  Future<List<dynamic>> getResenasKeys() async {
     User? user = FirebaseAuth.instance.currentUser;
 
-    QuerySnapshot cafeteriasQuerySnapshot = await _collectionRef.get();
-    var cafeteriasKeyList = [];
-    for (var doc in cafeteriasQuerySnapshot.docs) {
+    QuerySnapshot resenasQuerySnapshot = await _collectionRef.get();
+    var resenasKeysList = [];
+    for (var doc in resenasQuerySnapshot.docs) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      widget.tipoUI == 'Mis cafeterias'
+      widget.tipoUI == 'Mis reseñas'
           ? (data['creador'] == user?.uid)
               ? {
-                  cafeteriasKeyList.add([data, doc.id])
+                  resenasKeysList.add([data, doc.id])
                 }
               : null
-          : cafeteriasKeyList.add([data, doc.id]);
+          : resenasKeysList.add([data, doc.id]);
     }
     setState(() {
-      cafeteriasKeys = cafeteriasKeyList;
+      resenasKeys = resenasKeysList;
     });
-    return cafeteriasKeyList;
+    return resenasKeysList;
   }
 
   final CarouselController _controller = CarouselController();
 
-  String nombreCafeteriaActual = "";
+  String nombreResenaActual = "";
 
   Future<void> _openMapsModal(String ubicacion) async {
     final String googleMapsUrl =
@@ -173,32 +172,32 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
     }
   }
 
-  Widget btnCafeteria(IconData icono, String tipo, String nombreCafeteria,
-      String UidCafeteria) {
+  Widget btnResena(
+      IconData icono, String tipo, String nombre, String UidResena) {
     return (InkWell(
       onHover: (value) {
         if (value) {
           setState(() {
-            btnCafeteriaHovered = [tipo, true];
+            btnResenaHovered = [tipo, true];
           });
         } else {
           setState(() {
-            btnCafeteriaHovered = [tipo, false];
+            btnResenaHovered = [tipo, false];
           });
         }
       },
       onTap: () {
-        if (tipo == 'Guardar cafeteria') {
-          cafeteriasGuardadas.contains(UidCafeteria)
-              ? borrarFavoritos(UidCafeteria)
-              : subirFavoritos(UidCafeteria);
+        if (tipo == 'Guardar reseña') {
+          resenasGuardadas.contains(UidResena)
+              ? borrarFavoritos(UidResena)
+              : subirFavoritos(UidResena);
         }
       },
       child: Container(
         decoration: BoxDecoration(
-          color: (btnCafeteriaHovered[0] == tipo &&
-                  btnCafeteriaHovered[1] == true &&
-                  nombreCafeteriaActual == nombreCafeteria)
+          color: (btnResenaHovered[0] == tipo &&
+                  btnResenaHovered[1] == true &&
+                  nombreResenaActual == nombre)
               ? Color.fromARGB(255, 107, 0, 200)
               : colorMorado,
           borderRadius: BorderRadius.all(
@@ -213,31 +212,43 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
     ));
   }
 
-  String obtenerKeyCafeteria(String nombreCafeteria) {
-    String keyCafeteria = '';
-    for (var cafeteria in cafeteriasKeys) {
-      if (cafeteria[0]['nombre'] == nombreCafeteria) {
-        keyCafeteria = cafeteria[1];
+  String obtenerKeyResena(String nombre) {
+    String keyResena = '';
+    for (var resena in resenasKeys) {
+      if (resena[0]['nickname_usuario'] == nombre) {
+        keyResena = resena[1];
       }
     }
-    return keyCafeteria;
+    return keyResena;
+  }
+
+  double promedio(Map<String, dynamic> listaCalificaciones) {
+    double promedio = 0;
+    double suma = 0;
+    int cantidad = 0;
+    listaCalificaciones.forEach((key, value) {
+      suma += value;
+      cantidad++;
+    });
+    promedio = suma / cantidad;
+    return promedio;
   }
 
   Widget sliderImagenes() {
     User? user = FirebaseAuth.instance.currentUser;
     setState(() {
-      if (listaCafeterias.length > 0 && nombreCafeteriaActual == "") {
-        nombreCafeteriaActual = listaCafeterias[0]["nombre"];
+      if (listaResenas.length > 0 && nombreResenaActual == "") {
+        nombreResenaActual = listaResenas[0]["nickname_usuario"];
       }
     });
     return FutureBuilder<List<Map<String, dynamic>>>(
-      future: getCafeteriasData(),
+      future: getResenasData(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return SizedBox();
         }
 
-        List<Map<String, dynamic>> cafeteriasDataList = snapshot.data!;
+        List<Map<String, dynamic>> resenasDataList = snapshot.data!;
 
         return Align(
           child: SingleChildScrollView(
@@ -253,20 +264,23 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
                     height: MediaQuery.of(context).size.height * 0.72,
                     onPageChanged: (index, reason) => {
                       setState(() {
-                        nombreCafeteriaActual =
-                            cafeteriasDataList[index]["nombre"];
+                        nombreResenaActual =
+                            resenasDataList[index]["nickname_usuario"];
                       })
                     },
                   ),
                   carouselController: _controller,
-                  items: cafeteriasDataList.asMap().entries.map((entry) {
+                  items: resenasDataList.asMap().entries.map((entry) {
                     int index = entry.key;
-                    String nombre = entry.value["nombre"];
-                    String urlImagen = entry.value["imagen"];
-                    String ubicacion = entry.value["ubicacion"];
-                    double calificacion = entry.value["calificacion"];
-                    String web = entry.value["web"];
-                    String creador = entry.value["creador"];
+                    String nombre = entry.value["nickname_usuario"];
+                    String urlImagen = entry.value["urlFotografia"];
+                    String ubicacion = entry.value["direccion"];
+                    String fecha = entry.value["fechaCreacion"];
+                    String calificacion = entry.value["comentario"];
+                    String cafeteria = entry.value["cafeteria"];
+                    String creador = entry.value["uid_usuario"];
+                    Map<String, dynamic> listaCalificaciones =
+                        entry.value["reseña"];
 
                     return Container(
                       margin: EdgeInsets.symmetric(vertical: 20),
@@ -317,17 +331,17 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
                                                 onPressed: () {},
                                                 label: Container(
                                                   margin: EdgeInsets.only(
-                                                      right: nombreCafeteriaActual ==
-                                                              nombre
-                                                          ? 10
-                                                          : 5,
-                                                      top:
-                                                          nombreCafeteriaActual ==
+                                                      right:
+                                                          nombreResenaActual ==
                                                                   nombre
                                                               ? 10
                                                               : 5,
+                                                      top: nombreResenaActual ==
+                                                              nombre
+                                                          ? 10
+                                                          : 5,
                                                       bottom:
-                                                          nombreCafeteriaActual ==
+                                                          nombreResenaActual ==
                                                                   nombre
                                                               ? 10
                                                               : 5),
@@ -343,17 +357,16 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
                                                 icon: Container(
                                                   margin: EdgeInsets.only(
                                                       left:
-                                                          nombreCafeteriaActual ==
+                                                          nombreResenaActual ==
                                                                   nombre
                                                               ? 10
                                                               : 5,
-                                                      top:
-                                                          nombreCafeteriaActual ==
-                                                                  nombre
-                                                              ? 10
-                                                              : 5,
+                                                      top: nombreResenaActual ==
+                                                              nombre
+                                                          ? 10
+                                                          : 5,
                                                       bottom:
-                                                          nombreCafeteriaActual ==
+                                                          nombreResenaActual ==
                                                                   nombre
                                                               ? 10
                                                               : 5),
@@ -379,7 +392,8 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
                                       ),
                                     ),
                                     RatingBar.builder(
-                                      initialRating: calificacion,
+                                      initialRating:
+                                          promedio(listaCalificaciones),
                                       minRating: 1,
                                       direction: Axis.horizontal,
                                       allowHalfRating: true,
@@ -396,10 +410,10 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
                                         print(rating);
                                       },
                                     ),
-                                    nombreCafeteriaActual == nombre
+                                    nombreResenaActual == nombre
                                         ? Container(
                                             child: Text(
-                                              '${calificacion.toString()}/5',
+                                              '${promedio(listaCalificaciones).toString()}/5',
                                               style: TextStyle(
                                                   color: colorMorado,
                                                   fontSize: 26,
@@ -418,33 +432,27 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,
                                         children: [
-                                          btnCafeteria(Icons.web, 'Web', nombre,
-                                              obtenerKeyCafeteria(nombre)),
-                                          btnCafeteria(
-                                              Icons.map,
-                                              'Mapa',
-                                              nombre,
-                                              obtenerKeyCafeteria(nombre)),
-                                          btnCafeteria(
-                                              Icons.feedback,
-                                              'Reseñas',
-                                              nombre,
-                                              obtenerKeyCafeteria(nombre)),
+                                          btnResena(Icons.web, 'Web', nombre,
+                                              obtenerKeyResena(nombre)),
+                                          btnResena(Icons.map, 'Mapa', nombre,
+                                              obtenerKeyResena(nombre)),
+                                          btnResena(Icons.feedback, 'Reseñas',
+                                              nombre, obtenerKeyResena(nombre)),
                                           creador == user?.uid
-                                              ? btnCafeteria(
+                                              ? btnResena(
                                                   Icons.settings,
                                                   'Configuracion',
                                                   nombre,
-                                                  obtenerKeyCafeteria(nombre))
-                                              : btnCafeteria(
-                                                  cafeteriasGuardadas.contains(
-                                                          obtenerKeyCafeteria(
+                                                  obtenerKeyResena(nombre))
+                                              : btnResena(
+                                                  resenasGuardadas.contains(
+                                                          obtenerKeyResena(
                                                               nombre))
                                                       ? Icons.favorite
                                                       : Icons.favorite_outline,
-                                                  'Guardar cafeteria',
+                                                  'Guardar reseña',
                                                   nombre,
-                                                  obtenerKeyCafeteria(nombre))
+                                                  obtenerKeyResena(nombre))
                                         ],
                                       ),
                                     )
@@ -464,28 +472,28 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
     );
   }
 
-  Widget vistaCoffeeStudio() {
+  Widget vistaResenas() {
     Future.delayed(Duration(seconds: 1), () {
       setState(() {
         mostrarDataStudio = true;
       });
     });
+    print(listaResenas);
     return Container(
         width: MediaQuery.of(context).size.width,
-        child:
-            (listaCafeterias.isEmpty && widget.tipoUI == 'Cafeterias guardadas')
-                ? Container(
-                    alignment: Alignment.center,
-                    margin: EdgeInsets.only(top: 300),
-                    child: Text(
-                      'Sin cafeterias guardadas',
-                      style: TextStyle(
-                          color: colorMorado,
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  )
-                : sliderImagenes());
+        child: (listaResenas.isEmpty && widget.tipoUI == 'Reseñas guardadas')
+            ? Container(
+                alignment: Alignment.center,
+                margin: EdgeInsets.only(top: 300),
+                child: Text(
+                  'Sin reseñas guardadas',
+                  style: TextStyle(
+                      color: colorMorado,
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold),
+                ),
+              )
+            : sliderImagenes());
   }
 
   Widget vistaWeb() {
@@ -533,7 +541,7 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
                       children: [
                         Center(
                             child: Text(
-                          'Cafeterias',
+                          'Reseñas',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 30,
@@ -569,7 +577,7 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
                               child: mostrarData2
                                   ? Center(
                                       child: Text(
-                                        'Cafeterías',
+                                        'Reseñas',
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 24,
@@ -578,9 +586,9 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
                                       ),
                                     )
                                   : Icon(
-                                      Icons.coffee_maker_rounded,
+                                      Icons.feedback,
                                       color: colorNaranja,
-                                      size: 60,
+                                      size: 50,
                                     ),
                             ),
                           ),
@@ -598,10 +606,10 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
                             child: GestureDetector(
                                 child: Center(
                               child: Text(
-                                widget.tipoUI == 'Cafeterias guardadas' &&
-                                        cafeteriasGuardadas.isEmpty
+                                widget.tipoUI == 'Reseñas guardadas' &&
+                                        resenasGuardadas.isEmpty
                                     ? ''
-                                    : nombreCafeteriaActual,
+                                    : nombreResenaActual,
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 24,
@@ -613,7 +621,7 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
                         ),
                       ],
                     )),
-                Container(child: vistaCoffeeStudio()),
+                Container(child: vistaResenas()),
               ],
             )),
       ),
@@ -677,8 +685,8 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
   void initState() {
     super.initState();
 
-    obtenerCafeteriasGuardadas();
-    getCafeteriasKeys();
-    getCafeteriasData();
+    obtenerResenasGuardadas();
+    getResenasKeys();
+    getResenasData();
   }
 }

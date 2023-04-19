@@ -12,6 +12,10 @@ import 'package:prueba/ventanas/dataUI.dart';
 
 import 'package:prueba/ventanas/visionUI.dart';
 
+import 'package:prueba/ventanas/coffeeUI.dart';
+
+import '../ventanas/feedbackUI.dart';
+
 class Header extends StatefulWidget {
   final double ancho_pantalla;
   final bool usuarioLogueado;
@@ -50,6 +54,14 @@ class _HeaderState extends State<Header> {
 
   var openData = false;
   var openData2 = false;
+
+  var openCoffee = false;
+  var openCoffee2 = false;
+  var coffeeUI = '';
+
+  var openFeedback = false;
+  var openFeedback2 = false;
+  var feedbackUI = '';
 
   var mostrarMenuCafeteria = false;
   var mostrarMenuCafeteria2 = false;
@@ -634,12 +646,78 @@ class _HeaderState extends State<Header> {
     }
   }
 
+  void abrirCoffeeUI(String menu) {
+    if (openCoffee) {
+      setState(() {
+        openCoffee = false;
+      });
+      Future.delayed(Duration(milliseconds: 300), () {
+        setState(() {
+          openCoffee2 = false;
+        });
+      });
+    }
+    openFeedback2 = false;
+
+    Future.delayed(Duration(milliseconds: 600), () {
+      setState(() {
+        openFeedback = false;
+        coffeeUI = menu;
+        openCoffee = true;
+      });
+    });
+    Future.delayed(Duration(milliseconds: 900), () {
+      setState(() {
+        openCoffee2 = true;
+      });
+    });
+  }
+
+  void abrirFeedbackUI(String menu) {
+    if (openFeedback) {
+      setState(() {
+        openFeedback = false;
+      });
+      Future.delayed(Duration(milliseconds: 300), () {
+        setState(() {
+          openFeedback2 = false;
+        });
+      });
+    }
+    openCoffee2 = false;
+    Future.delayed(Duration(milliseconds: 600), () {
+      setState(() {
+        openCoffee = false;
+        feedbackUI = menu;
+        openFeedback = true;
+      });
+    });
+    Future.delayed(Duration(milliseconds: 900), () {
+      setState(() {
+        openFeedback2 = true;
+      });
+    });
+  }
+
   Widget btnSubSubSideBar(String menu) {
     return (Container(
       width: (dispositivo == 'PC') ? 190 : 120,
       height: (dispositivo == 'PC') ? 40 : 30,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+          if (menu.contains('cafeterias') || menu.contains('Cafeterias')) {
+            cerrarData();
+            cerrarLogin();
+            cerrarVision();
+            abrirCoffeeUI(menu);
+          }
+          if (menu.contains('reseñas') || menu.contains('Reseñas')) {
+            cerrarData();
+            cerrarLogin();
+            cerrarVision();
+            abrirFeedbackUI(menu);
+          }
+        },
         child: Text(menu,
             style: TextStyle(
                 color: colorMorado,
@@ -916,6 +994,22 @@ class _HeaderState extends State<Header> {
                 opacity: openData2 ? 1 : 0,
                 duration: Duration(milliseconds: 500),
                 child: DataUI(),
+              )
+            : Container(),
+        openCoffee
+            ? AnimatedOpacity(
+                opacity: openCoffee2 ? 1 : 0,
+                duration: Duration(milliseconds: 500),
+                child: CafeteriasUI(
+                  tipoUI: coffeeUI,
+                ),
+              )
+            : Container(),
+        openFeedback
+            ? AnimatedOpacity(
+                opacity: openFeedback2 ? 1 : 0,
+                duration: Duration(milliseconds: 500),
+                child: ResenasUI(tipoUI: feedbackUI),
               )
             : Container(),
         Row(
