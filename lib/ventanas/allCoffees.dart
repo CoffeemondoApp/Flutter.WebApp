@@ -13,15 +13,15 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter_web/google_maps_flutter_web.dart';
 
-class CafeteriasUI extends StatefulWidget {
+class allCoffeesUI extends StatefulWidget {
   final tipoUI;
-  const CafeteriasUI({required this.tipoUI});
+  const allCoffeesUI({required this.tipoUI});
 
   @override
-  _CafeteriasUIState createState() => _CafeteriasUIState();
+  _allCoffeesUIState createState() => _allCoffeesUIState();
 }
 
-class _CafeteriasUIState extends State<CafeteriasUI> {
+class _allCoffeesUIState extends State<allCoffeesUI> {
   var colorScaffold = Color(0xffffebdcac);
   var colorNaranja = Color.fromARGB(255, 255, 79, 52);
   var colorMorado = Color.fromARGB(0xff, 0x52, 0x01, 0x9b);
@@ -464,7 +464,7 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
     );
   }
 
-  Widget vistaCoffeeStudio() {
+  Widget vistaCoffeeData() {
     Future.delayed(Duration(seconds: 1), () {
       setState(() {
         mostrarDataStudio = true;
@@ -486,6 +486,96 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
                     ),
                   )
                 : sliderImagenes());
+  }
+
+  Widget vistaCoffeeMaker() {
+    return (Container(
+      width: MediaQuery.of(context).size.width,
+      child: Column(
+        children: [
+          Container(
+            margin: EdgeInsets.only(top: 20),
+            child: Text(
+              'Cafeteras',
+              style: TextStyle(
+                  color: colorMorado,
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold),
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.only(top: 20),
+            child: Text(
+              'Cafeteras',
+              style: TextStyle(
+                  color: colorMorado,
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold),
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.only(top: 20),
+            child: Text(
+              'Cafeteras',
+              style: TextStyle(
+                  color: colorMorado,
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold),
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.only(top: 20),
+            child: Text(
+              'Cafeteras',
+              style: TextStyle(
+                  color: colorMorado,
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold),
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.only(top: 20),
+            child: Text(
+              'Cafeteras',
+              style: TextStyle(
+                  color: colorMorado,
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold),
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.only(top: 20),
+            child: Text(
+              'Cafeteras',
+              style: TextStyle(
+                  color: colorMorado,
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold),
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.only(top: 20),
+            child: Text(
+              'Cafeteras',
+              style: TextStyle(
+                  color: colorMorado,
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold),
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.only(top: 20),
+            child: Text(
+              'Cafeteras',
+              style: TextStyle(
+                  color: colorMorado,
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    ));
   }
 
   Widget vistaWeb() {
@@ -613,7 +703,10 @@ class _CafeteriasUIState extends State<CafeteriasUI> {
                         ),
                       ],
                     )),
-                Container(child: vistaCoffeeStudio()),
+                Container(
+                    child: widget.tipoUI == 'Crear cafeteria'
+                        ? vistaCoffeeMaker()
+                        : vistaCoffeeData()),
               ],
             )),
       ),
