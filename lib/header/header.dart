@@ -1022,7 +1022,25 @@ class _HeaderState extends State<Header> {
                           tipoUI: coffeeUI,
                         ),
                       )
-                    : Container(),
+                    : openLogin
+                        ? AnimatedOpacity(
+                            opacity: openLogin2 ? 1 : 0,
+                            duration: Duration(milliseconds: 500),
+                            child: Login(),
+                          )
+                        : openVision
+                            ? AnimatedOpacity(
+                                opacity: openVision2 ? 1 : 0,
+                                duration: Duration(milliseconds: 500),
+                                child: VisionUI(),
+                              )
+                            : openData
+                                ? AnimatedOpacity(
+                                    opacity: openData2 ? 1 : 0,
+                                    duration: Duration(milliseconds: 500),
+                                    child: DataUI(),
+                                  )
+                                : Container(),
         Row(
           children: [
             containerSideBar(),
