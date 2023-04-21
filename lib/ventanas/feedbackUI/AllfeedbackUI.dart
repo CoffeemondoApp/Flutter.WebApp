@@ -13,15 +13,15 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter_web/google_maps_flutter_web.dart';
 
-class ResenasUI extends StatefulWidget {
+class AllResenasUI extends StatefulWidget {
   final tipoUI;
-  const ResenasUI({required this.tipoUI});
+  const AllResenasUI({required this.tipoUI});
 
   @override
-  _ResenasUIState createState() => _ResenasUIState();
+  _AllResenasUIState createState() => _AllResenasUIState();
 }
 
-class _ResenasUIState extends State<ResenasUI> {
+class _AllResenasUIState extends State<AllResenasUI> {
   var colorScaffold = Color(0xffffebdcac);
   var colorNaranja = Color.fromARGB(255, 255, 79, 52);
   var colorMorado = Color.fromARGB(0xff, 0x52, 0x01, 0x9b);
@@ -99,7 +99,7 @@ class _ResenasUIState extends State<ResenasUI> {
       // Se actualiza la informacion del usuario actual mediante los controladores, que son los campos de informacion que el usuario debe rellenar
 
       docRef.update({
-        'resenasGuardadas': FieldValue.arrayRemove([uidResena])
+        'reseñasGuardadas': FieldValue.arrayRemove([uidResena])
       });
       print('Ingreso de informacion exitoso.');
       obtenerResenasGuardadas();
@@ -120,16 +120,7 @@ class _ResenasUIState extends State<ResenasUI> {
     List<Map<String, dynamic>> resenasDataList = [];
     for (var doc in resenasQuerySnapshot.docs) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-
-      widget.tipoUI == 'Mis reseñas'
-          ? (data['uid_usuario'] == user?.uid)
-              ? {resenasDataList.add(data)}
-              : null
-          : widget.tipoUI == 'Reseñas guardadas'
-              ? resenasGuardadas.contains(doc.id)
-                  ? resenasDataList.add(data)
-                  : null
-              : resenasDataList.add(data);
+      resenasDataList.add({'data': data, 'uid': doc.id});
     }
 
     setState(() {
@@ -239,7 +230,7 @@ class _ResenasUIState extends State<ResenasUI> {
     User? user = FirebaseAuth.instance.currentUser;
     setState(() {
       if (listaResenas.length > 0 && nombreResenaActual == "") {
-        nombreResenaActual = listaResenas[0]["nickname_usuario"];
+        nombreResenaActual = listaResenas[0]["data"]["nickname_usuario"];
       }
     });
     return FutureBuilder<List<Map<String, dynamic>>>(
@@ -257,31 +248,33 @@ class _ResenasUIState extends State<ResenasUI> {
               children: [
                 CarouselSlider(
                   options: CarouselOptions(
-                    viewportFraction: 0.4,
+                    viewportFraction: dispositivo == 'PC' ? 0.4 : 0.9,
                     enlargeCenterPage: true,
                     enableInfiniteScroll: false,
                     autoPlay: true,
                     autoPlayCurve: Curves.fastOutSlowIn,
-                    height: MediaQuery.of(context).size.height * 0.72,
+                    height: dispositivo == 'PC'
+                        ? MediaQuery.of(context).size.height * 0.72
+                        : MediaQuery.of(context).size.height * 0.85,
                     onPageChanged: (index, reason) => {
                       setState(() {
                         nombreResenaActual =
-                            resenasDataList[index]["nickname_usuario"];
+                            resenasDataList[index]["data"]["nickname_usuario"];
                       })
                     },
                   ),
                   carouselController: _controller,
                   items: resenasDataList.asMap().entries.map((entry) {
                     int index = entry.key;
-                    String nombre = entry.value["nickname_usuario"];
-                    String urlImagen = entry.value["urlFotografia"];
-                    String ubicacion = entry.value["direccion"];
-                    String fecha = entry.value["fechaCreacion"];
-                    String calificacion = entry.value["comentario"];
-                    String cafeteria = entry.value["cafeteria"];
-                    String creador = entry.value["uid_usuario"];
+                    String nombre = entry.value["data"]["nickname_usuario"];
+                    String urlImagen = entry.value["data"]["urlFotografia"];
+                    String ubicacion = entry.value["data"]["direccion"];
+                    String fecha = entry.value["data"]["fechaCreacion"];
+                    String comentario = entry.value["data"]["comentario"];
+                    String cafeteria = entry.value["data"]["cafeteria"];
+                    String creador = entry.value["data"]["uid_usuario"];
                     Map<String, dynamic> listaCalificaciones =
-                        entry.value["reseña"];
+                        entry.value["data"]["reseña"];
 
                     return Container(
                       margin: EdgeInsets.symmetric(vertical: 20),
@@ -347,10 +340,13 @@ class _ResenasUIState extends State<ResenasUI> {
                                                               ? 10
                                                               : 5),
                                                   child: Text(
-                                                    ubicacion,
+                                                    cafeteria,
                                                     style: TextStyle(
                                                         color: colorNaranja,
-                                                        fontSize: 18,
+                                                        fontSize:
+                                                            dispositivo == 'PC'
+                                                                ? 18
+                                                                : 14,
                                                         fontWeight:
                                                             FontWeight.bold),
                                                   ),
@@ -371,8 +367,13 @@ class _ResenasUIState extends State<ResenasUI> {
                                                                   nombre
                                                               ? 10
                                                               : 5),
-                                                  child: Icon(Icons.location_on,
-                                                      color: colorNaranja),
+                                                  child: Icon(
+                                                    Icons.coffee_maker,
+                                                    color: colorNaranja,
+                                                    size: dispositivo == 'PC'
+                                                        ? 24
+                                                        : 20,
+                                                  ),
                                                 ),
                                                 style: ButtonStyle(
                                                   backgroundColor:
@@ -398,6 +399,7 @@ class _ResenasUIState extends State<ResenasUI> {
                                       minRating: 1,
                                       direction: Axis.horizontal,
                                       allowHalfRating: true,
+                                      itemSize: dispositivo == 'PC' ? 40 : 30,
                                       itemCount: 5,
                                       ignoreGestures: true,
                                       itemPadding:
@@ -405,7 +407,6 @@ class _ResenasUIState extends State<ResenasUI> {
                                       itemBuilder: (context, _) => Icon(
                                         Icons.coffee,
                                         color: colorMorado,
-                                        size: 12,
                                       ),
                                       onRatingUpdate: (rating) {
                                         print(rating);
@@ -417,43 +418,158 @@ class _ResenasUIState extends State<ResenasUI> {
                                               '${promedio(listaCalificaciones).toString()}/5',
                                               style: TextStyle(
                                                   color: colorMorado,
-                                                  fontSize: 26,
+                                                  fontSize: dispositivo == 'PC'
+                                                      ? 26
+                                                      : 20,
                                                   fontWeight: FontWeight.bold),
                                             ),
                                           )
                                         : Container(),
                                   ],
                                 ),
+                                nombreResenaActual == nombre
+                                    ? Container(
+                                        height: 150,
+                                        width: 350,
+                                        decoration: BoxDecoration(
+                                            color: colorMorado,
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(20))),
+                                        child: Column(
+                                          children: [
+                                            Container(
+                                              width: 330,
+                                              height: 25,
+                                              decoration: BoxDecoration(
+                                                  color: colorNaranja,
+                                                  borderRadius:
+                                                      BorderRadius.all(
+                                                          Radius.circular(20))),
+                                              margin: EdgeInsets.symmetric(
+                                                  horizontal: 10, vertical: 5),
+                                              child: Container(
+                                                  margin: EdgeInsets.symmetric(
+                                                      horizontal: 10),
+                                                  child: Text('Pregunta 1')),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : Container(),
+                                Column(
+                                  children: [
+                                    Container(
+                                      width: 350,
+                                      decoration: BoxDecoration(
+                                        color: colorMorado,
+                                        borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(20),
+                                            topRight: Radius.circular(20),
+                                            bottomRight: Radius.circular(20)),
+                                      ),
+                                      child: Container(
+                                        margin: EdgeInsets.all(20),
+                                        child: Text(
+                                          comentario,
+                                          style: TextStyle(
+                                              color: colorNaranja,
+                                              fontSize:
+                                                  dispositivo == 'PC' ? 18 : 14,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      width: 350,
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.person,
+                                              color: colorMorado,
+                                              size: dispositivo == 'PC'
+                                                  ? 24
+                                                  : 20),
+                                          Text(
+                                            nombre,
+                                            style: TextStyle(
+                                                color: colorMorado,
+                                                fontSize: dispositivo == 'PC'
+                                                    ? 18
+                                                    : 14,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Container(
+                                      margin: EdgeInsets.only(right: 10),
+                                      decoration: BoxDecoration(
+                                        color: colorMorado,
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(20)),
+                                      ),
+                                      child: Container(
+                                        width: 200,
+                                        margin: EdgeInsets.symmetric(
+                                            vertical: 5, horizontal: 5),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            Icon(Icons.event,
+                                                color: colorNaranja,
+                                                size: dispositivo == 'PC'
+                                                    ? 24
+                                                    : 20),
+                                            Text(
+                                              fecha,
+                                              style: TextStyle(
+                                                  color: colorNaranja),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 Column(
                                   children: [
                                     Container(
                                       margin: EdgeInsets.only(
-                                          left: 200, bottom: 10, right: 10),
+                                          left: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.1,
+                                          bottom: 10,
+                                          right: 10),
                                       child: Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           btnResena(Icons.web, 'Web', nombre,
-                                              obtenerKeyResena(nombre)),
+                                              entry.value["uid"]),
                                           btnResena(Icons.map, 'Mapa', nombre,
-                                              obtenerKeyResena(nombre)),
+                                              entry.value["uid"]),
                                           btnResena(Icons.feedback, 'Reseñas',
-                                              nombre, obtenerKeyResena(nombre)),
+                                              nombre, entry.value["uid"]),
                                           creador == user?.uid
                                               ? btnResena(
                                                   Icons.settings,
                                                   'Configuracion',
                                                   nombre,
-                                                  obtenerKeyResena(nombre))
+                                                  entry.value["uid"])
                                               : btnResena(
                                                   resenasGuardadas.contains(
-                                                          obtenerKeyResena(
-                                                              nombre))
+                                                          entry.value["uid"])
                                                       ? Icons.favorite
                                                       : Icons.favorite_outline,
                                                   'Guardar reseña',
                                                   nombre,
-                                                  obtenerKeyResena(nombre))
+                                                  entry.value["uid"])
                                         ],
                                       ),
                                     )
@@ -481,7 +597,7 @@ class _ResenasUIState extends State<ResenasUI> {
     });
 
     return Container(
-        width: MediaQuery.of(context).size.width,
+        color: Colors.blue,
         child: (listaResenas.isEmpty && widget.tipoUI == 'Reseñas guardadas')
             ? Container(
                 alignment: Alignment.center,
@@ -561,6 +677,7 @@ class _ResenasUIState extends State<ResenasUI> {
                                 borderRadius: BorderRadius.circular(40)),
                             child: GestureDetector(
                               onTap: (() {
+                                print(listaResenas);
                                 setState(() {
                                   mostrarData = !mostrarData;
 
@@ -645,11 +762,16 @@ class _ResenasUIState extends State<ResenasUI> {
                   color: colorMorado,
                   borderRadius: BorderRadius.all(Radius.circular(20))),
               child: Container(
-                margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                child: Text(
-                  'Cafeterías',
-                  style: TextStyle(
-                      color: colorNaranja, fontWeight: FontWeight.bold),
+                margin: EdgeInsets.symmetric(vertical: 5, horizontal: 20),
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                  child: Text(
+                    'Todas las reseñas',
+                    style: TextStyle(
+                        color: colorNaranja,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24),
+                  ),
                 ),
               ),
             ),

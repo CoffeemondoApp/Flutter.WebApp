@@ -13,15 +13,15 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter_web/google_maps_flutter_web.dart';
 
-class myCoffeesUI extends StatefulWidget {
+class allCoffeesUI extends StatefulWidget {
   final tipoUI;
-  const myCoffeesUI({required this.tipoUI});
+  const allCoffeesUI({required this.tipoUI});
 
   @override
-  _myCoffeesUIState createState() => _myCoffeesUIState();
+  _allCoffeesUIState createState() => _allCoffeesUIState();
 }
 
-class _myCoffeesUIState extends State<myCoffeesUI> {
+class _allCoffeesUIState extends State<allCoffeesUI> {
   var colorScaffold = Color(0xffffebdcac);
   var colorNaranja = Color.fromARGB(255, 255, 79, 52);
   var colorMorado = Color.fromARGB(0xff, 0x52, 0x01, 0x9b);
@@ -122,7 +122,7 @@ class _myCoffeesUIState extends State<myCoffeesUI> {
     List<Map<String, dynamic>> cafeteriasDataList = [];
     for (var doc in cafeteriasQuerySnapshot.docs) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      (data['creador'] == user?.uid) ? {cafeteriasDataList.add(data)} : null;
+      cafeteriasDataList.add({'data': data, 'uid': doc.id});
     }
     setState(() {
       listaCafeterias = cafeteriasDataList;
@@ -215,11 +215,19 @@ class _myCoffeesUIState extends State<myCoffeesUI> {
     return keyCafeteria;
   }
 
+  String generarTextoUbicacion(String texto) {
+    if (texto.split(', ')[0].length > 20) {
+      return texto.split(', ')[0];
+    } else {
+      return texto;
+    }
+  }
+
   Widget sliderImagenes() {
     User? user = FirebaseAuth.instance.currentUser;
     setState(() {
-      if (listaCafeterias.length > 0 && nombreCafeteriaActual == "") {
-        nombreCafeteriaActual = listaCafeterias[0]["nombre"];
+      if (listaCafeterias.isNotEmpty && nombreCafeteriaActual == "") {
+        nombreCafeteriaActual = listaCafeterias[0]["data"]["nombre"];
       }
     });
     return FutureBuilder<List<Map<String, dynamic>>>(
@@ -237,28 +245,32 @@ class _myCoffeesUIState extends State<myCoffeesUI> {
               children: [
                 CarouselSlider(
                   options: CarouselOptions(
-                    viewportFraction: 0.4,
+                    viewportFraction: dispositivo == 'PC' ? 0.4 : 0.9,
                     enlargeCenterPage: true,
                     enableInfiniteScroll: false,
                     autoPlay: true,
                     autoPlayCurve: Curves.fastOutSlowIn,
-                    height: MediaQuery.of(context).size.height * 0.72,
+                    height: dispositivo == 'PC'
+                        ? MediaQuery.of(context).size.height * 0.72
+                        : MediaQuery.of(context).size.height * 0.85,
                     onPageChanged: (index, reason) => {
                       setState(() {
                         nombreCafeteriaActual =
-                            cafeteriasDataList[index]["nombre"];
+                            cafeteriasDataList[index]["data"]["nombre"];
                       })
                     },
                   ),
                   carouselController: _controller,
                   items: cafeteriasDataList.asMap().entries.map((entry) {
                     int index = entry.key;
-                    String nombre = entry.value["nombre"];
-                    String urlImagen = entry.value["imagen"];
-                    String ubicacion = entry.value["ubicacion"];
-                    double calificacion = entry.value["calificacion"];
-                    String web = entry.value["web"];
-                    String creador = entry.value["creador"];
+                    String nombre = entry.value["data"]["nombre"];
+                    String urlImagen = entry.value["data"]["imagen"];
+                    String ubicacion = entry.value["data"]["ubicacion"];
+                    String correo = entry.value["data"]["correo"];
+                    String calificacion =
+                        entry.value["data"]["calificacion"].toString();
+                    String web = entry.value["data"]["web"];
+                    String creador = entry.value["data"]["creador"];
 
                     return Container(
                       margin: EdgeInsets.symmetric(vertical: 20),
@@ -324,10 +336,14 @@ class _myCoffeesUIState extends State<myCoffeesUI> {
                                                               ? 10
                                                               : 5),
                                                   child: Text(
-                                                    ubicacion,
+                                                    generarTextoUbicacion(
+                                                        ubicacion),
                                                     style: TextStyle(
                                                         color: colorNaranja,
-                                                        fontSize: 18,
+                                                        fontSize:
+                                                            dispositivo == 'PC'
+                                                                ? 18
+                                                                : 14,
                                                         fontWeight:
                                                             FontWeight.bold),
                                                   ),
@@ -349,8 +365,13 @@ class _myCoffeesUIState extends State<myCoffeesUI> {
                                                                   nombre
                                                               ? 10
                                                               : 5),
-                                                  child: Icon(Icons.location_on,
-                                                      color: colorNaranja),
+                                                  child: Icon(
+                                                    Icons.location_on,
+                                                    color: colorNaranja,
+                                                    size: dispositivo == 'PC'
+                                                        ? 24
+                                                        : 20,
+                                                  ),
                                                 ),
                                                 style: ButtonStyle(
                                                   backgroundColor:
@@ -371,10 +392,11 @@ class _myCoffeesUIState extends State<myCoffeesUI> {
                                       ),
                                     ),
                                     RatingBar.builder(
-                                      initialRating: calificacion,
+                                      initialRating: double.parse(calificacion),
                                       minRating: 1,
                                       direction: Axis.horizontal,
                                       allowHalfRating: true,
+                                      itemSize: dispositivo == 'PC' ? 40 : 30,
                                       itemCount: 5,
                                       ignoreGestures: true,
                                       itemPadding:
@@ -382,7 +404,6 @@ class _myCoffeesUIState extends State<myCoffeesUI> {
                                       itemBuilder: (context, _) => Icon(
                                         Icons.coffee,
                                         color: colorMorado,
-                                        size: 12,
                                       ),
                                       onRatingUpdate: (rating) {
                                         print(rating);
@@ -391,10 +412,12 @@ class _myCoffeesUIState extends State<myCoffeesUI> {
                                     nombreCafeteriaActual == nombre
                                         ? Container(
                                             child: Text(
-                                              '${calificacion.toString()}/5',
+                                              '$calificacion/5',
                                               style: TextStyle(
                                                   color: colorMorado,
-                                                  fontSize: 26,
+                                                  fontSize: dispositivo == 'PC'
+                                                      ? 26
+                                                      : 20,
                                                   fontWeight: FontWeight.bold),
                                             ),
                                           )
@@ -405,38 +428,39 @@ class _myCoffeesUIState extends State<myCoffeesUI> {
                                   children: [
                                     Container(
                                       margin: EdgeInsets.only(
-                                          left: 200, bottom: 10, right: 10),
+                                          left: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.1,
+                                          bottom: 10,
+                                          right: 10),
                                       child: Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           btnCafeteria(Icons.web, 'Web', nombre,
-                                              obtenerKeyCafeteria(nombre)),
-                                          btnCafeteria(
-                                              Icons.map,
-                                              'Mapa',
-                                              nombre,
-                                              obtenerKeyCafeteria(nombre)),
+                                              entry.value["uid"]),
+                                          btnCafeteria(Icons.map, 'Mapa',
+                                              nombre, entry.value["uid"]),
                                           btnCafeteria(
                                               Icons.feedback,
                                               'Reseñas',
                                               nombre,
-                                              obtenerKeyCafeteria(nombre)),
+                                              entry.value["uid"]),
                                           creador == user?.uid
                                               ? btnCafeteria(
                                                   Icons.settings,
                                                   'Configuracion',
                                                   nombre,
-                                                  obtenerKeyCafeteria(nombre))
+                                                  entry.value["uid"])
                                               : btnCafeteria(
                                                   cafeteriasGuardadas.contains(
-                                                          obtenerKeyCafeteria(
-                                                              nombre))
+                                                          entry.value["uid"])
                                                       ? Icons.favorite
                                                       : Icons.favorite_outline,
                                                   'Guardar cafeteria',
                                                   nombre,
-                                                  obtenerKeyCafeteria(nombre))
+                                                  entry.value["uid"])
                                         ],
                                       ),
                                     )
@@ -720,11 +744,16 @@ class _myCoffeesUIState extends State<myCoffeesUI> {
                   color: colorMorado,
                   borderRadius: BorderRadius.all(Radius.circular(20))),
               child: Container(
-                margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                child: Text(
-                  'Cafeterías',
-                  style: TextStyle(
-                      color: colorNaranja, fontWeight: FontWeight.bold),
+                margin: EdgeInsets.symmetric(vertical: 5, horizontal: 20),
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                  child: Text(
+                    'Todas las cafeterias',
+                    style: TextStyle(
+                        color: colorNaranja,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24),
+                  ),
                 ),
               ),
             ),
@@ -748,7 +777,6 @@ class _myCoffeesUIState extends State<myCoffeesUI> {
       pantalla = ancho_pantalla;
     });
     print(pantalla);
-
     setState(() {
       if (ancho_pantalla > 1130) {
         dispositivo = 'PC';

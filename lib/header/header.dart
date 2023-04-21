@@ -8,15 +8,16 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:prueba/autenticacion.dart';
 import 'package:prueba/login/login.dart';
 import 'package:prueba/sliderImagenesHeader/dataFrame.dart';
-import 'package:prueba/ventanas/allCoffees.dart';
-import 'package:prueba/ventanas/coffeeSavedUI.dart';
+import 'package:prueba/ventanas/coffeeUI/allCoffees.dart';
+import 'package:prueba/ventanas/coffeeUI/coffeeSavedUI.dart';
 import 'package:prueba/ventanas/dataUI.dart';
+import 'package:prueba/ventanas/feedbackUI/AllfeedbackUI.dart';
+import 'package:prueba/ventanas/feedbackUI/myFeedbackUI.dart';
+import 'package:prueba/ventanas/feedbackUI/savedFeedbackUI.dart';
 
 import 'package:prueba/ventanas/visionUI.dart';
 
-import 'package:prueba/ventanas/myCoffeeUI.dart';
-
-import '../ventanas/feedbackUI.dart';
+import 'package:prueba/ventanas/coffeeUI/myCoffeeUI.dart';
 
 class Header extends StatefulWidget {
   final double ancho_pantalla;
@@ -61,11 +62,20 @@ class _HeaderState extends State<Header> {
   var openAllCoffees2 = false;
   var coffeeUI = '';
 
+  var openAllfeedback = false;
+  var openAllfeedback2 = false;
+
   var openMyCoffees = false;
   var openMyCoffees2 = false;
 
+  var openMyFeedback = false;
+  var openMyFeedback2 = false;
+
   var openSavedCoffees = false;
   var openSavedCoffees2 = false;
+
+  var openSavedFeedback = false;
+  var openSavedFeedback2 = false;
 
   var openFeedback = false;
   var openFeedback2 = false;
@@ -344,6 +354,19 @@ class _HeaderState extends State<Header> {
         Future.delayed(Duration(milliseconds: 100), () {
           mostrarMenuCuenta = false;
         });
+      } else if (menu == 'Todos') {
+        mostrarMenuCafeteria2 = false;
+        mostrarMenuResena2 = false;
+        mostrarMenuServicio2 = false;
+        mostrarMenuEvento2 = false;
+        mostrarMenuCuenta2 = false;
+        Future.delayed(Duration(milliseconds: 100), () {
+          mostrarMenuCafeteria = false;
+          mostrarMenuResena = false;
+          mostrarMenuServicio = false;
+          mostrarMenuEvento = false;
+          mostrarMenuCuenta = false;
+        });
       }
     });
   }
@@ -364,9 +387,25 @@ class _HeaderState extends State<Header> {
     });
   }
 
+  void cerrarModuloCafeteria(String modulo) {
+    setState(() {
+      if (modulo == 'Cafeterias') {
+        openAllCoffees = false;
+        openAllCoffees2 = false;
+        openMyCoffees = false;
+        openMyCoffees2 = false;
+        openSavedCoffees = false;
+        openSavedCoffees2 = false;
+      }
+    });
+  }
+
   void mostrarVision() {
     setState(() {
       openVision = true;
+      openLogin2 = false;
+      openLogin = false;
+      cerrarModuloCafeteria('Cafeterias');
     });
     Future.delayed(Duration(milliseconds: 500), () {
       openVision2 = true;
@@ -383,6 +422,7 @@ class _HeaderState extends State<Header> {
   }
 
   void mostrarData() {
+    cerrarModuloCafeteria('Cafeterias');
     setState(() {
       openData = true;
     });
@@ -620,7 +660,10 @@ class _HeaderState extends State<Header> {
               setState(
                 () {
                   if (sideBar2) {
-                    cerrarSideBar();
+                    cerrarSubMenu('Todos');
+                    Future.delayed(Duration(milliseconds: 350), () {
+                      cerrarSideBar();
+                    });
                   } else {
                     abrirSideBar();
                   }
@@ -648,6 +691,7 @@ class _HeaderState extends State<Header> {
         mostrarData();
         cerrarVision();
       } else if (menu == 'Vision AI') {
+        print('Vision AI');
         mostrarVision();
         cerrarData();
       } else if (menu == 'Crear cafeteria') {}
@@ -694,49 +738,161 @@ class _HeaderState extends State<Header> {
     }
   }
 
-  void abrirFeedbackUI(String menu) {
-    if (openFeedback) {
+  void cerrarModuloResenas(String menu) {
+    if (menu == 'Todas las reseñas') {
       setState(() {
-        openFeedback = false;
+        openMyFeedback = false;
+        openMyFeedback2 = false;
+        openSavedFeedback = false;
+        openSavedFeedback2 = false;
       });
-      Future.delayed(Duration(milliseconds: 300), () {
+    } else if (menu == 'Mis reseñas') {
+      setState(() {
+        openAllfeedback = false;
+        openAllfeedback2 = false;
+        openSavedFeedback = false;
+        openSavedFeedback2 = false;
+      });
+    } else if (menu == 'Reseñas guardadas') {
+      setState(() {
+        openAllfeedback = false;
+        openAllfeedback2 = false;
+        openMyFeedback = false;
+        openMyFeedback2 = false;
+      });
+    }
+  }
+
+  void abrirFeedbackUI(String menu) {
+    if (menu == 'Todas las reseñas') {
+      if (openAllfeedback) {
         setState(() {
-          openFeedback2 = false;
+          openAllfeedback = false;
+        });
+        Future.delayed(Duration(milliseconds: 300), () {
+          setState(() {
+            openAllfeedback2 = false;
+          });
+        });
+      }
+      cerrarModuloResenas(menu);
+      cerrarModuloCafeteria('Cafeterias');
+      Future.delayed(Duration(milliseconds: 600), () {
+        setState(() {
+          feedbackUI = menu;
+          openAllfeedback = true;
+        });
+      });
+      Future.delayed(Duration(milliseconds: 900), () {
+        setState(() {
+          openAllfeedback2 = true;
+        });
+      });
+    } else if (menu == 'Mis reseñas') {
+      if (openMyFeedback) {
+        setState(() {
+          openMyFeedback = false;
+        });
+        Future.delayed(Duration(milliseconds: 300), () {
+          setState(() {
+            openMyFeedback2 = false;
+          });
+        });
+      }
+      cerrarModuloResenas(menu);
+      cerrarModuloCafeteria('Cafeterias');
+      Future.delayed(Duration(milliseconds: 600), () {
+        setState(() {
+          feedbackUI = menu;
+          openMyFeedback = true;
+        });
+      });
+      Future.delayed(Duration(milliseconds: 900), () {
+        setState(() {
+          openMyFeedback2 = true;
+        });
+      });
+    } else if (menu == 'Reseñas guardadas') {
+      if (openSavedFeedback) {
+        setState(() {
+          openSavedFeedback = false;
+        });
+        Future.delayed(Duration(milliseconds: 300), () {
+          setState(() {
+            openSavedFeedback2 = false;
+          });
+        });
+      }
+      cerrarModuloResenas(menu);
+      cerrarModuloCafeteria('Cafeterias');
+      Future.delayed(Duration(milliseconds: 600), () {
+        setState(() {
+          feedbackUI = menu;
+          openSavedFeedback = true;
+        });
+      });
+      Future.delayed(Duration(milliseconds: 900), () {
+        setState(() {
+          openSavedFeedback2 = true;
         });
       });
     }
-    openAllCoffees2 = false;
-    Future.delayed(Duration(milliseconds: 600), () {
+  }
+
+  void disparadorCerrarSidebar() {
+    cerrarData();
+    cerrarLogin();
+    cerrarVision();
+    Future.delayed(Duration(milliseconds: 500), () {
       setState(() {
-        openAllCoffees = false;
-        feedbackUI = menu;
-        openFeedback = true;
+        activarSubMenuBtnSSB[2] = !activarSubMenuBtnSSB[2];
+      });
+    });
+    Future.delayed(Duration(milliseconds: 500), () {
+      setState(() {
+        activarSubMenuBtnSSB[1] = !activarSubMenuBtnSSB[1];
       });
     });
     Future.delayed(Duration(milliseconds: 900), () {
       setState(() {
-        openFeedback2 = true;
+        mostrarMenuCafeteria = false;
+        mostrarMenuResena = false;
+        mostrarMenuEvento = false;
+        mostrarMenuServicio = false;
+      });
+    });
+    Future.delayed(Duration(seconds: 1), () {
+      setState(() {
+        mostrarMenuCafeteria2 = false;
+        mostrarMenuResena2 = false;
+        mostrarMenuEvento2 = false;
+        mostrarMenuServicio2 = false;
+      });
+    });
+    Future.delayed(Duration(seconds: 2), () {
+      setState(() {
+        sideBar2 = !sideBar2;
+      });
+    });
+    Future.delayed(Duration(seconds: 3), () {
+      setState(() {
+        sideBar = !sideBar;
       });
     });
   }
 
   Widget btnSubSubSideBar(String menu) {
     return (Container(
-      width: (dispositivo == 'PC') ? 190 : 120,
+      width: (dispositivo == 'PC') ? 190 : 130,
       height: (dispositivo == 'PC') ? 40 : 30,
       child: ElevatedButton(
         onPressed: () {
           if (menu.contains('cafeterias') || menu.contains('Cafeterias')) {
-            cerrarData();
-            cerrarLogin();
-            cerrarVision();
-            print('btn contiene cafeterias');
+            disparadorCerrarSidebar();
             abrirCoffeeUI(menu);
           }
           if (menu.contains('reseñas') || menu.contains('Reseñas')) {
-            cerrarData();
-            cerrarLogin();
-            cerrarVision();
+            disparadorCerrarSidebar();
             abrirFeedbackUI(menu);
           }
         },
@@ -772,7 +928,7 @@ class _HeaderState extends State<Header> {
               color: colorMorado,
               borderRadius: BorderRadius.all(Radius.circular(20)))
           : null,
-      width: (dispositivo == 'PC') ? 210 : 130,
+      width: (dispositivo == 'PC') ? 210 : 140,
       height: activarSubMenuBtnSSB[1] && activarSubMenuBtnSSB[0] == btnText
           ? dispositivo == 'PC'
               ? 200
@@ -810,7 +966,7 @@ class _HeaderState extends State<Header> {
                           Icon(
                             Icons.arrow_drop_up,
                             color: colorNaranja,
-                            size: 30,
+                            size: dispositivo == 'PC' ? 26 : 20,
                           )
                         ],
                       ),
@@ -849,7 +1005,7 @@ class _HeaderState extends State<Header> {
                         Icon(
                           Icons.arrow_drop_down,
                           color: colorNaranja,
-                          size: 30,
+                          size: dispositivo == 'PC' ? 26 : 20,
                         )
                       ],
                     )
@@ -940,7 +1096,7 @@ class _HeaderState extends State<Header> {
               mostrarMenuCuenta)
           ? (dispositivo == 'PC')
               ? 220
-              : 140
+              : 150
           : 0,
       height: (dispositivo == 'PC')
           ? MediaQuery.of(context).size.height
@@ -1022,25 +1178,51 @@ class _HeaderState extends State<Header> {
                           tipoUI: coffeeUI,
                         ),
                       )
-                    : openLogin
+                    : openMyFeedback
                         ? AnimatedOpacity(
-                            opacity: openLogin2 ? 1 : 0,
+                            opacity: openMyFeedback2 ? 1 : 0,
                             duration: Duration(milliseconds: 500),
-                            child: Login(),
+                            child: myResenasUI(
+                              tipoUI: feedbackUI,
+                            ),
                           )
-                        : openVision
+                        : openSavedFeedback
                             ? AnimatedOpacity(
-                                opacity: openVision2 ? 1 : 0,
+                                opacity: openSavedFeedback2 ? 1 : 0,
                                 duration: Duration(milliseconds: 500),
-                                child: VisionUI(),
+                                child: savedResenasUI(
+                                  tipoUI: feedbackUI,
+                                ),
                               )
-                            : openData
+                            : openAllfeedback
                                 ? AnimatedOpacity(
-                                    opacity: openData2 ? 1 : 0,
+                                    opacity: openAllfeedback2 ? 1 : 0,
                                     duration: Duration(milliseconds: 500),
-                                    child: DataUI(),
+                                    child: AllResenasUI(
+                                      tipoUI: feedbackUI,
+                                    ),
                                   )
-                                : Container(),
+                                : openLogin
+                                    ? AnimatedOpacity(
+                                        opacity: openLogin2 ? 1 : 0,
+                                        duration: Duration(milliseconds: 500),
+                                        child: Login(),
+                                      )
+                                    : openVision
+                                        ? AnimatedOpacity(
+                                            opacity: openVision2 ? 1 : 0,
+                                            duration:
+                                                Duration(milliseconds: 500),
+                                            child: VisionUI(),
+                                          )
+                                        : openData
+                                            ? AnimatedOpacity(
+                                                opacity: openData2 ? 1 : 0,
+                                                duration:
+                                                    Duration(milliseconds: 500),
+                                                child: DataUI(),
+                                              )
+                                            : Container(),
         Row(
           children: [
             containerSideBar(),
