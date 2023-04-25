@@ -76,7 +76,13 @@ class _LoginState extends State<Login> {
           "uid": uid,
           "email": correoController.text,
           "nombre": "",
-          "foto":
+          "nickname": "",
+          "direccion": "",
+          "puntaje": "180",
+          "nivel": 1,
+          "telefono": "",
+          "cumpleanos": "",
+          "urlImage":
               'gs://coffeemondo-365813.appspot.com/profile_profile_image/user_img.png',
           "fecha": DateTime.now(),
           "cafeteriasGuardadas": [],
