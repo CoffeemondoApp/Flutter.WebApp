@@ -523,8 +523,6 @@ class _AllResenasUIState extends State<AllResenasUI> {
                     viewportFraction: dispositivo == 'PC' ? 0.4 : 0.92,
                     enlargeCenterPage: true,
                     enableInfiniteScroll: false,
-                    autoPlay: true,
-                    autoPlayCurve: Curves.fastOutSlowIn,
                     height: dispositivo == 'PC'
                         ? MediaQuery.of(context).size.height * 0.82
                         : MediaQuery.of(context).size.height * 0.85,

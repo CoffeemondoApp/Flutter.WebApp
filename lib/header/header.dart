@@ -406,6 +406,7 @@ class _HeaderState extends State<Header> {
       openLogin2 = false;
       openLogin = false;
       cerrarModuloCafeteria('Cafeterias');
+      cerrarModuloResenas('Crear reseña');
     });
     Future.delayed(Duration(milliseconds: 500), () {
       openVision2 = true;
@@ -423,6 +424,7 @@ class _HeaderState extends State<Header> {
 
   void mostrarData() {
     cerrarModuloCafeteria('Cafeterias');
+    cerrarModuloResenas('Crear reseña');
     setState(() {
       openData = true;
     });
@@ -693,6 +695,7 @@ class _HeaderState extends State<Header> {
       } else if (menu == 'Vision AI') {
         print('Vision AI');
         mostrarVision();
+
         cerrarData();
       } else if (menu == 'Crear cafeteria') {}
     }
@@ -759,6 +762,15 @@ class _HeaderState extends State<Header> {
         openAllfeedback2 = false;
         openMyFeedback = false;
         openMyFeedback2 = false;
+      });
+    } else if (menu == 'Crear reseña') {
+      setState(() {
+        openAllfeedback = false;
+        openAllfeedback2 = false;
+        openMyFeedback = false;
+        openMyFeedback2 = false;
+        openSavedFeedback = false;
+        openSavedFeedback2 = false;
       });
     }
   }

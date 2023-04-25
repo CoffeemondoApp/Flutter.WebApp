@@ -248,7 +248,7 @@ class _allCoffeesUIState extends State<allCoffeesUI> {
                     viewportFraction: dispositivo == 'PC' ? 0.4 : 0.9,
                     enlargeCenterPage: true,
                     enableInfiniteScroll: false,
-                    autoPlay: true,
+                    autoPlay: false,
                     autoPlayCurve: Curves.fastOutSlowIn,
                     height: dispositivo == 'PC'
                         ? MediaQuery.of(context).size.height * 0.72
