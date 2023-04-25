@@ -834,7 +834,7 @@ class _AllResenasUIState extends State<AllResenasUI> {
                       children: [
                         Center(
                             child: Text(
-                          'Reseñas',
+                          'Hola mundo',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 30,
