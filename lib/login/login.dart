@@ -50,6 +50,8 @@ class _LoginState extends State<Login> {
             "nombre": currentUser?.displayName,
             "foto": currentUser?.photoURL,
             "fecha": DateTime.now(),
+            "cafeteriasGuardadas": [],
+            "resenasGuardadas": []
           });
         });
       }
@@ -59,6 +61,51 @@ class _LoginState extends State<Login> {
     } on FirebaseAuthException catch (e) {
       print(e.message);
       rethrow;
+    }
+  }
+
+  void crearUsuario() async {
+    final uid = currentUser?.uid;
+    final DocumentSnapshot snapshot =
+        await FirebaseFirestore.instance.collection("users").doc(uid).get();
+
+    if (snapshot.exists) {
+      // Crear un nuevo documento para el usuario
+      Future.delayed(Duration(seconds: 3), () {
+        FirebaseFirestore.instance.collection("users").doc(uid).set({
+          "uid": uid,
+          "email": currentUser?.email,
+          "nombre": currentUser?.displayName,
+          "foto": currentUser?.photoURL,
+          "fecha": DateTime.now(),
+          "cafeteriasGuardadas": [],
+          "resenasGuardadas": []
+        });
+      });
+    }
+  }
+
+  Future<void> createUserWithEmailAndPassword() async {
+    try {
+      await Auth().createUserWithEmailAndPassword(
+        // Se utilizan los strings ingresados por el usuario para almacenar su email y contrasena en firebase auth
+        email: correoController.text,
+        password: passwordController.text,
+      );
+      print('Cuenta de usuario creada en FIREBASE satisfactoriamente.');
+      crearUsuario();
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        print('Tu contrasena es muy debil.');
+      } else if (e.code == 'email-already-in-use') {
+        //error_register = 'El correo electronico ya esta en uso.';
+        setState(() {
+          //_visible_errormsj = true;
+        });
+        //print(error_register);
+      }
+    } catch (e) {
+      print(e);
     }
   }
 
@@ -784,32 +831,6 @@ class _LoginState extends State<Login> {
             fontWeight: FontWeight.bold),
       )),
     );
-  }
-
-  Future<void> createUserWithEmailAndPassword() async {
-    try {
-      await Auth().createUserWithEmailAndPassword(
-        // Se utilizan los strings ingresados por el usuario para almacenar su email y contrasena en firebase auth
-        email: correoController.text,
-        password: passwordController.text,
-      );
-      print('Cuenta de usuario creada en FIREBASE satisfactoriamente.');
-      // pushReplacement remplazará la pantalla actual en la pila de navegacion por la nueva pantalla,
-      //lo que significa que el usuario no podra volver a la pantalla anterior al presionar el botón
-      //"Atrás" en su dispositivo.
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'weak-password') {
-        print('Tu contrasena es muy debil.');
-      } else if (e.code == 'email-already-in-use') {
-        //error_register = 'El correo electronico ya esta en uso.';
-        setState(() {
-          //_visible_errormsj = true;
-        });
-        //print(error_register);
-      }
-    } catch (e) {
-      print(e);
-    }
   }
 
   Widget btnRegister(double fontSize) {
