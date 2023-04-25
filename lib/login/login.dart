@@ -69,18 +69,19 @@ class _LoginState extends State<Login> {
     final DocumentSnapshot snapshot =
         await FirebaseFirestore.instance.collection("users").doc(uid).get();
 
-    if (snapshot.exists) {
+    if (!snapshot.exists) {
       // Crear un nuevo documento para el usuario
       Future.delayed(Duration(seconds: 3), () {
         FirebaseFirestore.instance.collection("users").doc(uid).set({
           "uid": uid,
-          "email": currentUser?.email,
-          "nombre": currentUser?.displayName,
-          "foto": currentUser?.photoURL,
+          "email": correoController.text,
+          "nombre": "",
+          "foto":
+              'gs://coffeemondo-365813.appspot.com/profile_profile_image/user_img.png',
           "fecha": DateTime.now(),
           "cafeteriasGuardadas": [],
           "resenasGuardadas": []
-        });
+        }).then((value) => print("Usuario creado satisfactoriamente en bbdd"));
       });
     }
   }
