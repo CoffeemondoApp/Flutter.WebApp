@@ -407,6 +407,7 @@ class _HeaderState extends State<Header> {
       openLogin = false;
       cerrarModuloCafeteria('Cafeterias');
       cerrarModuloResenas('Crear reseña');
+      disparadorCerrarSidebar();
     });
     Future.delayed(Duration(milliseconds: 500), () {
       openVision2 = true;
@@ -425,6 +426,7 @@ class _HeaderState extends State<Header> {
   void mostrarData() {
     cerrarModuloCafeteria('Cafeterias');
     cerrarModuloResenas('Crear reseña');
+    disparadorCerrarSidebar();
     setState(() {
       openData = true;
     });
@@ -566,6 +568,11 @@ class _HeaderState extends State<Header> {
                               : abrirSubMenu(menu)
                           : cerrarSubMenu(menu);
                     } else if ((menu == 'Cerrar sesion')) {
+                      disparadorCerrarSidebar();
+                      cerrarModuloCafeteria('Cafeterias');
+                      cerrarModuloResenas('Crear reseña');
+                      cerrarVision();
+                      cerrarData();
                       cerrarSesion();
                     } else if (menu == 'Iniciar sesion') {
                       openLogin2 ? cerrarLogin() : abrirLogin();
@@ -852,9 +859,8 @@ class _HeaderState extends State<Header> {
   }
 
   void disparadorCerrarSidebar() {
-    cerrarData();
     cerrarLogin();
-    cerrarVision();
+
     Future.delayed(Duration(milliseconds: 500), () {
       setState(() {
         activarSubMenuBtnSSB[2] = !activarSubMenuBtnSSB[2];

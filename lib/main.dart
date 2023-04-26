@@ -76,6 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
     bool usuarioExiste = currentUser != null;
     final ancho_pantalla = MediaQuery.of(context).size.width;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: PreferredSize(
         preferredSize:
             Size.fromHeight(MediaQuery.of(context).size.width * 0.75),

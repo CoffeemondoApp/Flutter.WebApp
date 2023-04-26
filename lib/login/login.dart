@@ -76,6 +76,7 @@ class _LoginState extends State<Login> {
           "uid": uid,
           "email": correoController.text,
           "nombre": "",
+<<<<<<< Updated upstream
           "nickname": "",
           "direccion": "",
           "puntaje": "180",
@@ -83,6 +84,9 @@ class _LoginState extends State<Login> {
           "telefono": "",
           "cumpleanos": "",
           "urlImage":
+=======
+          "foto":
+>>>>>>> Stashed changes
               'gs://coffeemondo-365813.appspot.com/profile_profile_image/user_img.png',
           "fecha": DateTime.now(),
           "cafeteriasGuardadas": [],
@@ -1102,7 +1106,7 @@ class _LoginState extends State<Login> {
   }
 
   Widget loginWeb() {
-    return (Dialog(
+    return Dialog(
       backgroundColor: Color.fromARGB(0, 0, 0, 0),
       child: Container(
         height: 700,
@@ -1138,7 +1142,7 @@ class _LoginState extends State<Login> {
           ],
         ),
       ),
-    ));
+    );
   }
 
   Widget loginMobile() {
@@ -1181,7 +1185,9 @@ class _LoginState extends State<Login> {
         ? Container()
         : (ancho_pantalla > 1315)
             ? loginWeb()
-            : loginMobile();
+            : SingleChildScrollView(
+                child: loginMobile(),
+              );
   }
 }
 
