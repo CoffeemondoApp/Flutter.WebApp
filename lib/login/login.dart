@@ -76,7 +76,6 @@ class _LoginState extends State<Login> {
           "uid": uid,
           "email": correoController.text,
           "nombre": "",
-<<<<<<< Updated upstream
           "nickname": "",
           "direccion": "",
           "puntaje": "180",
@@ -84,9 +83,6 @@ class _LoginState extends State<Login> {
           "telefono": "",
           "cumpleanos": "",
           "urlImage":
-=======
-          "foto":
->>>>>>> Stashed changes
               'gs://coffeemondo-365813.appspot.com/profile_profile_image/user_img.png',
           "fecha": DateTime.now(),
           "cafeteriasGuardadas": [],
