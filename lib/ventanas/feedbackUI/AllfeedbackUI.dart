@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:math';
+import 'package:http/http.dart';
+
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -5,6 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_launcher_icons/xml_templates.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:mercado_pago_integration/core/failures.dart';
+import 'package:mercado_pago_integration/mercado_pago_integration.dart';
+import 'package:mercado_pago_integration/models/payment.dart';
+
 import 'package:webviewx/webviewx.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:image_network/image_network.dart';
@@ -171,6 +179,69 @@ class _AllResenasUIState extends State<AllResenasUI> {
     }
   }
 
+  final Random random = Random();
+  static const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+  String generateRandomString(chars, int length) =>
+      Iterable.generate(length, (idx) => chars[random.nextInt(chars.length)])
+          .join();
+
+  List<String> constructorTickets(int cantEntradas, int dias) {
+    //generar strings random que solo contengan numeros y letras mayusculas y minusculas y que no se repitan
+    List<String> tickets = [];
+    for (var i = 0; i < cantEntradas * dias; i++) {
+      tickets.add(generateRandomString(chars, 20));
+    }
+    return tickets;
+  }
+
+  void generarTickets(String uidEvento, int cantEntradas, int dias) {
+    try {
+      // Importante: Este tipo de declaracion se utiliza para solamente actualizar la informacion solicitada y no manipular informacion adicional, como lo es la imagen y esto permite no borrar otros datos importantes
+
+      // Se busca la coleccion 'users' de la BD de Firestore en donde el uid sea igual al del usuario actual
+      final DocumentReference docRef =
+          FirebaseFirestore.instance.collection("eventos").doc(uidEvento);
+
+      docRef.update({'tickets': constructorTickets(cantEntradas, dias)});
+      print('Se han creado de forma exitosa los ' +
+          (cantEntradas * dias).toString() +
+          ' tickets para el evento ' +
+          uidEvento);
+      // Una vez actualizada la informacion, se devuelve a InfoUser para mostrar su nueva informacion
+    } catch (e) {
+      print("Error al intentar ingresar informacion");
+    }
+  }
+
+  final Map<String, Object> preference = {
+    'items': [
+      {
+        'title': 'Test Product',
+        'description': 'Description',
+        'quantity': 3,
+        'currency_id': 'ARS',
+        'unit_price': 1500,
+      }
+    ],
+    'payer': {'name': 'Buyer G.', 'email': 'test@gmail.com'},
+  };
+
+  void dispararCheckout() async {
+    final response = await post(
+      Uri.parse('https://jsonplaceholder.typicode.com/albums'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'quantity': '123',
+        'description': 'test',
+        'price': '5895'
+      }),
+    ).then((value) => print(value));
+  }
+
   Widget btnResena(
       IconData icono, String tipo, String nombre, String UidResena) {
     return (InkWell(
@@ -185,11 +256,13 @@ class _AllResenasUIState extends State<AllResenasUI> {
           });
         }
       },
-      onTap: () {
+      onTap: () async {
         if (tipo == 'Guardar reseña') {
           resenasGuardadas.contains(UidResena)
               ? borrarFavoritos(UidResena)
               : subirFavoritos(UidResena);
+        } else if (tipo == 'Web') {
+          dispararCheckout();
         }
       },
       child: Container(

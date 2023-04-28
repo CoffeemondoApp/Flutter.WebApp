@@ -50,69 +50,71 @@ class _dataFrameState extends State<dataFrame> {
     });
     return MaterialApp(
         home: Scaffold(
-            body: Stack(
-      children: [
-        PageView(
-          controller: _pageController,
-          onPageChanged: (index) {
-            setState(() {
-              _currentPage = index;
-            });
-          },
-          children: widget.imagenes,
-        ),
-        Header(ancho_pantalla, usuarioLogeado),
-        //(ancho_pantalla > 1180) ? Login() : Container(),
-        Container(
-          child: Center(child: dataStudio()),
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          decoration: BoxDecoration(color: Colors.black.withOpacity(0.5)),
-        ),
-        Container(
-          margin: EdgeInsets.symmetric(horizontal: 50),
-          alignment: Alignment.center,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: Icon(
-                  Icons.arrow_back_ios,
-                  color: Colors.white70,
-                ),
-                onPressed: () {
-                  _pageController.previousPage(
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                  if (_currentPage == 0) {
-                    _pageController.animateToPage(widget.imagenes.length - 1,
-                        duration: Duration(milliseconds: 300),
-                        curve: Curves.easeInOut);
-                  }
-                },
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.arrow_forward_ios,
-                  color: Colors.white70,
-                ),
-                onPressed: () {
-                  _pageController.nextPage(
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                  if (_currentPage == widget.imagenes.length - 1) {
-                    _pageController.animateToPage(0,
-                        duration: Duration(milliseconds: 300),
-                        curve: Curves.easeInOut);
-                  }
-                },
-              ),
-            ],
+            body: SingleChildScrollView(
+      child: Stack(
+        children: [
+          PageView(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            children: widget.imagenes,
           ),
-        )
-      ],
+          Header(ancho_pantalla, usuarioLogeado),
+          //(ancho_pantalla > 1180) ? Login() : Container(),
+          Container(
+            child: Center(child: dataStudio()),
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            decoration: BoxDecoration(color: Colors.black.withOpacity(0.5)),
+          ),
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 50),
+            alignment: Alignment.center,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.arrow_back_ios,
+                    color: Colors.white70,
+                  ),
+                  onPressed: () {
+                    _pageController.previousPage(
+                      duration: Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                    if (_currentPage == 0) {
+                      _pageController.animateToPage(widget.imagenes.length - 1,
+                          duration: Duration(milliseconds: 300),
+                          curve: Curves.easeInOut);
+                    }
+                  },
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.white70,
+                  ),
+                  onPressed: () {
+                    _pageController.nextPage(
+                      duration: Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                    if (_currentPage == widget.imagenes.length - 1) {
+                      _pageController.animateToPage(0,
+                          duration: Duration(milliseconds: 300),
+                          curve: Curves.easeInOut);
+                    }
+                  },
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
     )));
   }
 }
