@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart';
-
+import 'dart:js' as js;
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,9 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_launcher_icons/xml_templates.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:mercado_pago_integration/core/failures.dart';
-import 'package:mercado_pago_integration/mercado_pago_integration.dart';
-import 'package:mercado_pago_integration/models/payment.dart';
+import 'package:mercadopago_sdk/mercadopago_sdk.dart';
 
 import 'package:webviewx/webviewx.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
@@ -30,6 +28,8 @@ class AllResenasUI extends StatefulWidget {
 }
 
 class _AllResenasUIState extends State<AllResenasUI> {
+  var mp = MP.fromAccessToken(
+      "APP_USR-5628190965592398-030506-4649ac8ad6a15c50d59f6d038364bf70-514191793");
   var colorScaffold = Color(0xffffebdcac);
   var colorNaranja = Color.fromARGB(255, 255, 79, 52);
   var colorMorado = Color.fromARGB(0xff, 0x52, 0x01, 0x9b);
@@ -228,18 +228,32 @@ class _AllResenasUIState extends State<AllResenasUI> {
     'payer': {'name': 'Buyer G.', 'email': 'test@gmail.com'},
   };
 
-  void dispararCheckout() async {
-    final response = await post(
-      Uri.parse('https://jsonplaceholder.typicode.com/albums'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'quantity': '123',
-        'description': 'test',
-        'price': '5895'
-      }),
-    ).then((value) => print(value));
+  Future<Map<String, dynamic>> armarPreferencia() async {
+    var preference = {
+      "items": [
+        {
+          'title': 'Mi producto',
+          'quantity': 1,
+          'currency_id': 'CLP',
+          'unit_price': 1000
+        },
+        {
+          'title': 'Mi producto 2',
+          'quantity': 2,
+          'currency_id': 'CLP',
+          'unit_price': 1000
+        }
+      ],
+    };
+
+    var result = await mp.createPreference(preference);
+
+    return result;
+  }
+
+  Future<void> dispararCheckout() async {
+    var result = await armarPreferencia();
+    print(result['response']);
   }
 
   Widget btnResena(
@@ -256,13 +270,14 @@ class _AllResenasUIState extends State<AllResenasUI> {
           });
         }
       },
-      onTap: () async {
+      onTap: () {
         if (tipo == 'Guardar reseña') {
           resenasGuardadas.contains(UidResena)
               ? borrarFavoritos(UidResena)
               : subirFavoritos(UidResena);
         } else if (tipo == 'Web') {
-          dispararCheckout();
+          print("esto pasa");
+          //dispararCheckout();
         }
       },
       child: Container(
