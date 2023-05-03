@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:html';
 import 'dart:math';
 import 'package:flutter/services.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart';
 import 'dart:js' as js;
 import 'package:carousel_slider/carousel_slider.dart';
@@ -18,7 +21,7 @@ import 'package:image_network/image_network.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:google_maps_flutter_web/google_maps_flutter_web.dart';
+import 'package:google_maps/google_maps.dart' as gmaps;
 import 'package:intl/intl.dart';
 
 class crearEventoUI extends StatefulWidget {
@@ -578,6 +581,7 @@ class _crearEventoUIState extends State<crearEventoUI> {
 
   Widget textFieldUbicacion(TextEditingController controller) {
     return (TextFormField(
+      onTap: () {},
       controller: controller,
       style: TextStyle(color: colorNaranja, fontSize: 18),
       decoration: InputDecoration(
