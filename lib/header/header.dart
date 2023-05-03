@@ -11,7 +11,6 @@ import 'package:prueba/sliderImagenesHeader/dataFrame.dart';
 import 'package:prueba/ventanas/coffeeUI/allCoffees.dart';
 import 'package:prueba/ventanas/coffeeUI/coffeeSavedUI.dart';
 import 'package:prueba/ventanas/dataUI.dart';
-import 'package:prueba/ventanas/eventsUI/createEvent.dart';
 import 'package:prueba/ventanas/feedbackUI/AllfeedbackUI.dart';
 import 'package:prueba/ventanas/feedbackUI/myFeedbackUI.dart';
 import 'package:prueba/ventanas/feedbackUI/savedFeedbackUI.dart';
@@ -23,6 +22,8 @@ import 'package:prueba/ventanas/shoppingUI/shoppingCartUI.dart';
 import 'package:prueba/ventanas/visionUI.dart';
 
 import 'package:prueba/ventanas/coffeeUI/myCoffeeUI.dart';
+
+import '../ventanas/eventsUI/createEvent.dart';
 
 class Header extends StatefulWidget {
   final double ancho_pantalla;
@@ -95,6 +96,9 @@ class _HeaderState extends State<Header> {
   var openMyFeedback = false;
   var openMyFeedback2 = false;
 
+  var openCrearEvento = false;
+  var openCrearEvento2 = false;
+
   var openMyEvents = false;
   var openMyEvents2 = false;
 
@@ -114,9 +118,6 @@ class _HeaderState extends State<Header> {
   var openShoppingCart = false;
   var openShoppingCart2 = false;
   var shoppingUI = "";
-
-  var openCrearEvento = false;
-  var openCrearEvento2 = false;
 
   var mostrarMenuCafeteria = false;
   var mostrarMenuCafeteria2 = false;
@@ -515,7 +516,6 @@ class _HeaderState extends State<Header> {
       openLogin = false;
       cerrarModuloCafeteria('Cafeterias');
       cerrarModuloResenas('Crear reseña');
-      disparadorCerrarSidebar();
     });
     Future.delayed(Duration(milliseconds: 500), () {
       openVision2 = true;
@@ -534,7 +534,6 @@ class _HeaderState extends State<Header> {
   void mostrarData() {
     cerrarModuloCafeteria('Cafeterias');
     cerrarModuloResenas('Crear reseña');
-    disparadorCerrarSidebar();
     setState(() {
       openData = true;
     });
@@ -595,7 +594,8 @@ class _HeaderState extends State<Header> {
         child: InkWell(
           onHover: (value) => {
             print(value),
-            dispositivo == 'PC' ? disparadorBtnSideBar(menu, value) : null
+            dispositivo == 'PC' ? disparadorBtnSideBar(menu, value) : null,
+            menu == "Carrito" ? hoverSideBar = false : null
           },
           onTap: () {
             if (menu == 'Cafeterias') {
@@ -685,11 +685,6 @@ class _HeaderState extends State<Header> {
                           : openShoppingCart;
                       abrirCarritoUI(menu);
                     } else if ((menu == 'Cerrar sesion')) {
-                      disparadorCerrarSidebar();
-                      cerrarModuloCafeteria('Cafeterias');
-                      cerrarModuloResenas('Crear reseña');
-                      cerrarVision();
-                      cerrarData();
                       cerrarSesion();
                     } else if (menu == 'Iniciar sesion') {
                       openLogin2 ? cerrarLogin() : abrirLogin();
@@ -803,17 +798,6 @@ class _HeaderState extends State<Header> {
     ));
   }
 
-  void mostrarCrearEvento() {
-    setState(() {
-      openCrearEvento = true;
-    });
-    Future.delayed(Duration(milliseconds: 350), () {
-      setState(() {
-        openCrearEvento2 = true;
-      });
-    });
-  }
-
   void disparadorBtnSubSideBar(String menu, bool tieneSubMenu) {
     if (tieneSubMenu) {
       setState(() {
@@ -832,9 +816,7 @@ class _HeaderState extends State<Header> {
         mostrarVision();
 
         cerrarData();
-      } else if (menu == 'Crear evento') {
-        mostrarCrearEvento();
-      }
+      } else if (menu == 'Crear cafeteria') {}
     }
   }
 
@@ -989,8 +971,9 @@ class _HeaderState extends State<Header> {
   }
 
   void disparadorCerrarSidebar() {
+    cerrarData();
     cerrarLogin();
-
+    cerrarVision();
     Future.delayed(Duration(milliseconds: 500), () {
       setState(() {
         activarSubMenuBtnSSB[2] = !activarSubMenuBtnSSB[2];
@@ -1354,35 +1337,76 @@ class _HeaderState extends State<Header> {
                                       tipoUI: feedbackUI,
                                     ),
                                   )
-                                : openCrearEvento
+                                : openLogin
                                     ? AnimatedOpacity(
-                                        opacity: openCrearEvento2 ? 1 : 0,
+                                        opacity: openLogin2 ? 1 : 0,
                                         duration: Duration(milliseconds: 500),
-                                        child: crearEventoUI(
-                                          tipoUI: '',
-                                        ))
-                                    : openLogin
+                                        child: Login(),
+                                      )
+                                    : openAllEvents
                                         ? AnimatedOpacity(
-                                            opacity: openLogin2 ? 1 : 0,
+                                            opacity: openAllEvents2 ? 1 : 0,
                                             duration:
                                                 Duration(milliseconds: 500),
-                                            child: Login(),
+                                            child: EventosUI(
+                                              tipoUI: eventsUI,
+                                            ),
                                           )
-                                        : openVision
+                                        : openSavedEvents
                                             ? AnimatedOpacity(
-                                                opacity: openVision2 ? 1 : 0,
+                                                opacity:
+                                                    openSavedEvents2 ? 1 : 0,
                                                 duration:
                                                     Duration(milliseconds: 500),
-                                                child: VisionUI(),
+                                                child: eventsSavedUI(
+                                                  tipoUI: eventsUI,
+                                                ),
                                               )
-                                            : openData
+                                            : openVision
                                                 ? AnimatedOpacity(
-                                                    opacity: openData2 ? 1 : 0,
+                                                    opacity:
+                                                        openVision2 ? 1 : 0,
                                                     duration: Duration(
                                                         milliseconds: 500),
-                                                    child: DataUI(),
+                                                    child: VisionUI(),
                                                   )
-                                                : Container(),
+                                                : openCrearEvento
+                                                    ? AnimatedOpacity(
+                                                        opacity:
+                                                            openCrearEvento2
+                                                                ? 1
+                                                                : 0,
+                                                        duration: Duration(
+                                                            milliseconds: 500),
+                                                        child: crearEventoUI(
+                                                          tipoUI: '',
+                                                        ))
+                                                    : openShoppingCart
+                                                        ? AnimatedOpacity(
+                                                            opacity:
+                                                                openShoppingCart2
+                                                                    ? 1
+                                                                    : 0,
+                                                            duration: Duration(
+                                                                milliseconds:
+                                                                    500),
+                                                            child: ShoppingUI(
+                                                              tipoUI:
+                                                                  shoppingUI,
+                                                            ),
+                                                          )
+                                                        : openData
+                                                            ? AnimatedOpacity(
+                                                                opacity:
+                                                                    openData2
+                                                                        ? 1
+                                                                        : 0,
+                                                                duration: Duration(
+                                                                    milliseconds:
+                                                                        500),
+                                                                child: DataUI(),
+                                                              )
+                                                            : Container(),
         Row(
           children: [
             containerSideBar(),
