@@ -76,13 +76,7 @@ class _LoginState extends State<Login> {
           "uid": uid,
           "email": correoController.text,
           "nombre": "",
-          "nickname": "",
-          "direccion": "",
-          "puntaje": "180",
-          "nivel": 1,
-          "telefono": "",
-          "cumpleanos": "",
-          "urlImage":
+          "foto":
               'gs://coffeemondo-365813.appspot.com/profile_profile_image/user_img.png',
           "fecha": DateTime.now(),
           "cafeteriasGuardadas": [],
@@ -1102,43 +1096,44 @@ class _LoginState extends State<Login> {
   }
 
   Widget loginWeb() {
-    return (Dialog(
-      backgroundColor: Color.fromARGB(0, 0, 0, 0),
-      child: Container(
-        height: 700,
-        width: 1000,
-        decoration: BoxDecoration(
-          color: colorScaffold,
-          borderRadius: BorderRadius.circular(40),
-        ),
-        child: Row(
-          children: [
-            showRegister2
-                ? Container(
-                    child: vistaRegister('web'),
-                    width: 500,
-                    color: Colors.transparent,
-                  )
-                : Container(),
-            tryLogin2 ? vistaCargando('login') : Container(),
-            tryLogin2 || showRegister2 ? logo() : sliderLogo(),
-            Container(
-              child: (tryLogin || showRegister || mostrarRecuperarPassword)
-                  ? Container()
-                  : Container(
-                      margin: EdgeInsets.only(left: 20, right: 20),
-                      child: vistaLogin('web'),
-                    ),
-              color: Colors.transparent,
-              width: (tryLogin || showRegister || mostrarRecuperarPassword)
-                  ? 0
-                  : 500,
-              //color: Colors.black,
+    return Dialog(
+        backgroundColor: Color.fromARGB(0, 0, 0, 0),
+        child: SingleChildScrollView(
+          child: Container(
+            height: 700,
+            width: 1000,
+            decoration: BoxDecoration(
+              color: colorScaffold,
+              borderRadius: BorderRadius.circular(40),
             ),
-          ],
-        ),
-      ),
-    ));
+            child: Row(
+              children: [
+                showRegister2
+                    ? Container(
+                        child: vistaRegister('web'),
+                        width: 500,
+                        color: Colors.transparent,
+                      )
+                    : Container(),
+                tryLogin2 ? vistaCargando('login') : Container(),
+                tryLogin2 || showRegister2 ? logo() : sliderLogo(),
+                Container(
+                  child: (tryLogin || showRegister || mostrarRecuperarPassword)
+                      ? Container()
+                      : Container(
+                          margin: EdgeInsets.only(left: 20, right: 20),
+                          child: vistaLogin('web'),
+                        ),
+                  color: Colors.transparent,
+                  width: (tryLogin || showRegister || mostrarRecuperarPassword)
+                      ? 0
+                      : 500,
+                  //color: Colors.black,
+                ),
+              ],
+            ),
+          ),
+        ));
   }
 
   Widget loginMobile() {
