@@ -414,6 +414,11 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.1"
+  flutter_localizations:
+    dependency: "direct main"
+    description: flutter
+    source: sdk
+    version: "0.0.0"
   flutter_math_fork:
     dependency: transitive
     description:
@@ -422,6 +427,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.5.0"
+  flutter_plugin_android_lifecycle:
+    dependency: transitive
+    description:
+      name: flutter_plugin_android_lifecycle
+      sha256: "8ffe990dac54a4a5492747added38571a5ab474c8e5d196809ea08849c69b1bb"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.13"
   flutter_rating_bar:
     dependency: "direct main"
     description:
@@ -545,13 +558,37 @@ packages:
     source: hosted
     version: "0.2.0"
   google_maps:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: google_maps
       sha256: eb20a162d642599a05179e2d155b9e803899cb377764fdec9044fa7fa474bfb8
       url: "https://pub.dev"
     source: hosted
     version: "6.2.0"
+  google_maps_flutter:
+    dependency: "direct main"
+    description:
+      name: google_maps_flutter
+      sha256: "0a7e0bd1dfe594bc86892d2e69062e3f80b267e378042d82e6b87a8efc798013"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.6"
+  google_maps_flutter_android:
+    dependency: transitive
+    description:
+      name: google_maps_flutter_android
+      sha256: b1aeab571b33e983ced9977f2f0eca2b25925f6319e99e3901cfc1675e1b5ada
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.13"
+  google_maps_flutter_ios:
+    dependency: transitive
+    description:
+      name: google_maps_flutter_ios
+      sha256: e9ad74415a222573625a2c1717adc1e375b18e8ce660fc12db734d1bda1132d4
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.1"
   google_maps_flutter_platform_interface:
     dependency: transitive
     description:
@@ -720,6 +757,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.7"
+  latlng:
+    dependency: transitive
+    description:
+      name: latlng
+      sha256: "7184897f8c807eec96b0ec931293d46c052f92bfee9a9b2b4648b66fed5f34cd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.1"
   lints:
     dependency: transitive
     description:
@@ -736,6 +781,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
+  map:
+    dependency: "direct main"
+    description:
+      name: map
+      sha256: "64e39420db7172080d220d27d3e514cd66646b280b52ef9d76cdb8f2469188dc"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.1"
   matcher:
     dependency: transitive
     description:

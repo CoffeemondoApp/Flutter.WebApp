@@ -11,6 +11,7 @@ import 'package:prueba/sliderImagenesHeader/dataFrame.dart';
 import 'package:prueba/ventanas/coffeeUI/allCoffees.dart';
 import 'package:prueba/ventanas/coffeeUI/coffeeSavedUI.dart';
 import 'package:prueba/ventanas/dataUI.dart';
+import 'package:prueba/ventanas/eventsUI/createEvent.dart';
 import 'package:prueba/ventanas/feedbackUI/AllfeedbackUI.dart';
 import 'package:prueba/ventanas/feedbackUI/myFeedbackUI.dart';
 import 'package:prueba/ventanas/feedbackUI/savedFeedbackUI.dart';
@@ -80,6 +81,9 @@ class _HeaderState extends State<Header> {
   var openFeedback = false;
   var openFeedback2 = false;
   var feedbackUI = '';
+
+  var openCrearEvento = false;
+  var openCrearEvento2 = false;
 
   var mostrarMenuCafeteria = false;
   var mostrarMenuCafeteria2 = false;
@@ -686,6 +690,17 @@ class _HeaderState extends State<Header> {
     ));
   }
 
+  void mostrarCrearEvento() {
+    setState(() {
+      openCrearEvento = true;
+    });
+    Future.delayed(Duration(milliseconds: 350), () {
+      setState(() {
+        openCrearEvento2 = true;
+      });
+    });
+  }
+
   void disparadorBtnSubSideBar(String menu, bool tieneSubMenu) {
     if (tieneSubMenu) {
       setState(() {
@@ -704,7 +719,9 @@ class _HeaderState extends State<Header> {
         mostrarVision();
 
         cerrarData();
-      } else if (menu == 'Crear cafeteria') {}
+      } else if (menu == 'Crear evento') {
+        mostrarCrearEvento();
+      }
     }
   }
 
@@ -1220,27 +1237,36 @@ class _HeaderState extends State<Header> {
                                       tipoUI: feedbackUI,
                                     ),
                                   )
-                                : openLogin
+                                : openCrearEvento
                                     ? AnimatedOpacity(
-                                        opacity: openLogin2 ? 1 : 0,
+                                        opacity: openCrearEvento2 ? 1 : 0,
                                         duration: Duration(milliseconds: 500),
-                                        child: Login(),
+                                        child: crearEventoUI(
+                                          tipoUI: '',
+                                        ),
                                       )
-                                    : openVision
+                                    : openLogin
                                         ? AnimatedOpacity(
-                                            opacity: openVision2 ? 1 : 0,
+                                            opacity: openLogin2 ? 1 : 0,
                                             duration:
                                                 Duration(milliseconds: 500),
-                                            child: VisionUI(),
+                                            child: Login(),
                                           )
-                                        : openData
+                                        : openVision
                                             ? AnimatedOpacity(
-                                                opacity: openData2 ? 1 : 0,
+                                                opacity: openVision2 ? 1 : 0,
                                                 duration:
                                                     Duration(milliseconds: 500),
-                                                child: DataUI(),
+                                                child: VisionUI(),
                                               )
-                                            : Container(),
+                                            : openData
+                                                ? AnimatedOpacity(
+                                                    opacity: openData2 ? 1 : 0,
+                                                    duration: Duration(
+                                                        milliseconds: 500),
+                                                    child: DataUI(),
+                                                  )
+                                                : Container(),
         Row(
           children: [
             containerSideBar(),
