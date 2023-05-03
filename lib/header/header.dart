@@ -1354,27 +1354,35 @@ class _HeaderState extends State<Header> {
                                       tipoUI: feedbackUI,
                                     ),
                                   )
-                                : openLogin
+                                : openCrearEvento
                                     ? AnimatedOpacity(
-                                        opacity: openLogin2 ? 1 : 0,
+                                        opacity: openCrearEvento2 ? 1 : 0,
                                         duration: Duration(milliseconds: 500),
-                                        child: Login(),
-                                      )
-                                    : openVision
+                                        child: crearEventoUI(
+                                          tipoUI: '',
+                                        ))
+                                    : openLogin
                                         ? AnimatedOpacity(
-                                            opacity: openVision2 ? 1 : 0,
+                                            opacity: openLogin2 ? 1 : 0,
                                             duration:
                                                 Duration(milliseconds: 500),
-                                            child: VisionUI(),
+                                            child: Login(),
                                           )
-                                        : openData
+                                        : openVision
                                             ? AnimatedOpacity(
-                                                opacity: openData2 ? 1 : 0,
+                                                opacity: openVision2 ? 1 : 0,
                                                 duration:
                                                     Duration(milliseconds: 500),
-                                                child: DataUI(),
+                                                child: VisionUI(),
                                               )
-                                            : Container(),
+                                            : openData
+                                                ? AnimatedOpacity(
+                                                    opacity: openData2 ? 1 : 0,
+                                                    duration: Duration(
+                                                        milliseconds: 500),
+                                                    child: DataUI(),
+                                                  )
+                                                : Container(),
         Row(
           children: [
             containerSideBar(),
