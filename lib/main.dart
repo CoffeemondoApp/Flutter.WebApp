@@ -5,14 +5,16 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:prueba/firebase_options.dart';
 import 'package:prueba/login/login.dart';
+import 'package:prueba/ventanas/eventosUI/allEvents.dart';
+import 'package:prueba/ventanas/shoppingUI/shoppingCartUI.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'sliderImagenesHeader/index.dart';
 
 Future<void> main() async {
+  List<Map<String, dynamic>> listaCompras = [];
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -44,6 +46,12 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: const MyHomePage(title: 'CoffeeMondo'),
+      routes: {
+        '/eventos': (context) => EventosUI(tipoUI: ""),
+        '/carrito': (context) => ShoppingUI(
+              tipoUI: "carrito",
+            )
+      },
     );
   }
 }

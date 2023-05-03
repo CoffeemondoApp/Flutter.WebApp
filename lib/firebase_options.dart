@@ -54,12 +54,12 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyAp5D6hgldoFCggq7c2sj5_d9LuRGHQFvc',
-    appId: '1:661225577781:web:1bfe8f7e1ec285cb5c807c',
-    messagingSenderId: '661225577781',
-    projectId: 'coffeemondo-365813',
     authDomain: 'coffeemondo-365813.firebaseapp.com',
     databaseURL: 'https://coffeemondo-365813-default-rtdb.firebaseio.com',
+    projectId: 'coffeemondo-365813',
     storageBucket: 'coffeemondo-365813.appspot.com',
-    measurementId: 'G-7BQ0WB8G4Z',
+    messagingSenderId: '661225577781',
+    appId: '1:661225577781:web:1bfe8f7e1ec285cb5c807c',
+    measurementId: 'G-7BQ0WB8G4Z'
   );
 }

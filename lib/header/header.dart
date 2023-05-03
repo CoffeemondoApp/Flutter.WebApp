@@ -15,6 +15,10 @@ import 'package:prueba/ventanas/eventsUI/createEvent.dart';
 import 'package:prueba/ventanas/feedbackUI/AllfeedbackUI.dart';
 import 'package:prueba/ventanas/feedbackUI/myFeedbackUI.dart';
 import 'package:prueba/ventanas/feedbackUI/savedFeedbackUI.dart';
+import 'package:prueba/ventanas/eventosUI/allEvents.dart';
+import 'package:prueba/ventanas/eventosUI/myEventsUI.dart';
+import 'package:prueba/ventanas/eventosUI/eventsSavedUI.dart';
+import 'package:prueba/ventanas/shoppingUI/shoppingCartUI.dart';
 
 import 'package:prueba/ventanas/visionUI.dart';
 
@@ -24,7 +28,10 @@ class Header extends StatefulWidget {
   final double ancho_pantalla;
   final bool usuarioLogueado;
 
-  Header(this.ancho_pantalla, this.usuarioLogueado);
+  static final GlobalKey<_HeaderState> headerKey = GlobalKey<_HeaderState>();
+
+  Header(this.ancho_pantalla, this.usuarioLogueado, {Key? key})
+      : super(key: key);
 
   @override
   _HeaderState createState() => _HeaderState();
@@ -33,6 +40,18 @@ class Header extends StatefulWidget {
 class _HeaderState extends State<Header> {
   void initState() {
     super.initState();
+  }
+
+  abrirCarritoUI(String menu) {
+    print(menu);
+    if (menu == 'Carrito') {
+      setState(() {
+        openShoppingCart = true;
+      });
+      cerrarModuloCafeteria("Cafeteria");
+      cerrarModuloEventos("Eventos");
+      cerrarModuloResenas("Reseñas");
+    }
   }
 
   var openLogin = false;
@@ -63,6 +82,10 @@ class _HeaderState extends State<Header> {
   var openAllCoffees2 = false;
   var coffeeUI = '';
 
+  var openAllEvents = false;
+  var openAllEvents2 = false;
+  var eventsUI = "";
+
   var openAllfeedback = false;
   var openAllfeedback2 = false;
 
@@ -72,15 +95,25 @@ class _HeaderState extends State<Header> {
   var openMyFeedback = false;
   var openMyFeedback2 = false;
 
+  var openMyEvents = false;
+  var openMyEvents2 = false;
+
   var openSavedCoffees = false;
   var openSavedCoffees2 = false;
 
   var openSavedFeedback = false;
   var openSavedFeedback2 = false;
 
+  var openSavedEvents = false;
+  var openSavedEvents2 = false;
+
   var openFeedback = false;
   var openFeedback2 = false;
   var feedbackUI = '';
+
+  var openShoppingCart = false;
+  var openShoppingCart2 = false;
+  var shoppingUI = "";
 
   var openCrearEvento = false;
   var openCrearEvento2 = false;
@@ -318,6 +351,15 @@ class _HeaderState extends State<Header> {
         Future.delayed(Duration(milliseconds: 500), () {
           mostrarMenuEvento2 = true;
         });
+      } else if (menu == 'Carrito') {
+        openShoppingCart = true;
+        cerrarSubMenu('Cafeterias');
+        cerrarSubMenu('Reseñas');
+        cerrarSubMenu('Servicios');
+        cerrarSubMenu('Mi cuenta');
+        Future.delayed(Duration(milliseconds: 500), () {
+          openShoppingCart2 = true;
+        });
       } else if (menu == 'Mi cuenta') {
         mostrarMenuCuenta = true;
         cerrarSubMenu('Cafeterias');
@@ -327,6 +369,15 @@ class _HeaderState extends State<Header> {
         Future.delayed(Duration(milliseconds: 500), () {
           mostrarMenuCuenta2 = true;
         });
+      }
+    });
+  }
+
+  void cerrarModuloCarrito(String modulo) {
+    setState(() {
+      if (modulo == 'Carrito') {
+        openShoppingCart = false;
+        openShoppingCart2 = false;
       }
     });
   }
@@ -402,6 +453,59 @@ class _HeaderState extends State<Header> {
         openSavedCoffees2 = false;
       }
     });
+  }
+
+  void cerrarModuloEventos(String modulo) {
+    setState(() {
+      if (modulo == 'Eventos') {
+        openAllEvents = false;
+        openAllEvents2 = false;
+        openMyEvents = false;
+        openMyEvents2 = false;
+        openSavedEvents = false;
+        openSavedEvents2 = false;
+      }
+    });
+  }
+
+  void abrirEventosUI(String menu) {
+    print(menu);
+    if (menu == 'Todos las eventos') {
+      setState(() {
+        openAllEvents = true;
+        openMyEvents2 = false;
+      });
+      Future.delayed(Duration(milliseconds: 300), () {
+        setState(() {
+          openMyEvents = false;
+          openAllEvents2 = true;
+        });
+      });
+    } else if (menu == 'Mis eventos') {
+      setState(() {
+        openMyEvents = true;
+        openAllEvents2 = false;
+      });
+      Future.delayed(Duration(milliseconds: 300), () {
+        setState(() {
+          openAllEvents = false;
+          openMyEvents2 = true;
+        });
+      });
+    } else if (menu == 'Eventos guardados') {
+      setState(() {
+        openSavedEvents = true;
+        openAllEvents2 = false;
+        openMyEvents2 = false;
+      });
+      Future.delayed(Duration(milliseconds: 300), () {
+        setState(() {
+          openAllEvents = false;
+          openMyEvents = false;
+          openSavedEvents2 = true;
+        });
+      });
+    }
   }
 
   void mostrarVision() {
@@ -518,6 +622,10 @@ class _HeaderState extends State<Header> {
                       ? cerrarSubMenu(menu)
                       : abrirSubMenu(menu)
                   : cerrarSubMenu(menu);
+            } else if (menu == 'Carrito') {
+              dispositivo != 'PC' ? abrirCarritoUI(menu) : openShoppingCart;
+              abrirCarritoUI(menu);
+              cerrarModuloCafeteria("Cafeteria");
             } else if (menu == 'Mi cuenta') {
               dispositivo != 'PC'
                   ? mostrarMenuCuenta
@@ -571,6 +679,11 @@ class _HeaderState extends State<Header> {
                               ? cerrarSubMenu(menu)
                               : abrirSubMenu(menu)
                           : cerrarSubMenu(menu);
+                    } else if (menu == 'Carrito') {
+                      dispositivo != 'PC'
+                          ? abrirCarritoUI(menu)
+                          : openShoppingCart;
+                      abrirCarritoUI(menu);
                     } else if ((menu == 'Cerrar sesion')) {
                       disparadorCerrarSidebar();
                       cerrarModuloCafeteria('Cafeterias');
@@ -930,6 +1043,10 @@ class _HeaderState extends State<Header> {
             disparadorCerrarSidebar();
             abrirFeedbackUI(menu);
           }
+          if (menu.contains('eventos') || menu.contains('Eventos')) {
+            disparadorCerrarSidebar();
+            abrirEventosUI(menu);
+          }
         },
         child: Text(menu,
             style: TextStyle(
@@ -1237,36 +1354,27 @@ class _HeaderState extends State<Header> {
                                       tipoUI: feedbackUI,
                                     ),
                                   )
-                                : openCrearEvento
+                                : openLogin
                                     ? AnimatedOpacity(
-                                        opacity: openCrearEvento2 ? 1 : 0,
+                                        opacity: openLogin2 ? 1 : 0,
                                         duration: Duration(milliseconds: 500),
-                                        child: crearEventoUI(
-                                          tipoUI: '',
-                                        ),
+                                        child: Login(),
                                       )
-                                    : openLogin
+                                    : openVision
                                         ? AnimatedOpacity(
-                                            opacity: openLogin2 ? 1 : 0,
+                                            opacity: openVision2 ? 1 : 0,
                                             duration:
                                                 Duration(milliseconds: 500),
-                                            child: Login(),
+                                            child: VisionUI(),
                                           )
-                                        : openVision
+                                        : openData
                                             ? AnimatedOpacity(
-                                                opacity: openVision2 ? 1 : 0,
+                                                opacity: openData2 ? 1 : 0,
                                                 duration:
                                                     Duration(milliseconds: 500),
-                                                child: VisionUI(),
+                                                child: DataUI(),
                                               )
-                                            : openData
-                                                ? AnimatedOpacity(
-                                                    opacity: openData2 ? 1 : 0,
-                                                    duration: Duration(
-                                                        milliseconds: 500),
-                                                    child: DataUI(),
-                                                  )
-                                                : Container(),
+                                            : Container(),
         Row(
           children: [
             containerSideBar(),
