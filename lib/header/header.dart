@@ -316,6 +316,15 @@ class _HeaderState extends State<Header> {
     });
   }
 
+  void mostrarCrearEvento() {
+    setState(() {
+      openCrearEvento = !openCrearEvento;
+    });
+    Future.delayed(Duration(milliseconds: 500), () {
+      openCrearEvento2 = !openCrearEvento2;
+    });
+  }
+
   void abrirSubMenu(String menu) {
     setState(() {
       if (menu == 'Cafeterias') {
@@ -816,7 +825,9 @@ class _HeaderState extends State<Header> {
         mostrarVision();
 
         cerrarData();
-      } else if (menu == 'Crear cafeteria') {}
+      } else if (menu == 'Crear evento') {
+        mostrarCrearEvento();
+      }
     }
   }
 
