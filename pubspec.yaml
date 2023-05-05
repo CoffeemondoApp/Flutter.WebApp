@@ -74,6 +74,7 @@ dependencies:
   map: ^1.4.1
   google_maps_flutter: ^2.2.6
   google_maps: ^6.2.0
+  geocode: ^1.0.2
 
 dev_dependencies:
   flutter_test:

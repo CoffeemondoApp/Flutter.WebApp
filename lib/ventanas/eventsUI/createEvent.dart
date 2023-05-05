@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:html';
 import 'dart:math';
 import 'package:flutter/services.dart';
+import 'package:geocode/geocode.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart';
 import 'dart:js' as js;
@@ -44,11 +45,15 @@ class _crearEventoUIState extends State<crearEventoUI> {
   var mostrarDataStudio = false;
   var mostrarNombre = false;
   var mostrarNombre2 = false;
+  var mostrarBtnUbicacion = false;
+  var mostrarDialogMap = false;
   var uidCamara = "";
   var pantalla = 0.0;
   var resenasGuardadas = [];
   var resenasKeys = [];
   var listaResenas = [];
+  var ubicacionLatLng = LatLng(0, 0);
+  var hoveredAddLocation = false;
 
   TextEditingController cafeteriaController = TextEditingController();
   TextEditingController lugarController = TextEditingController();
@@ -579,9 +584,30 @@ class _crearEventoUIState extends State<crearEventoUI> {
     ));
   }
 
+  final Completer<GoogleMapController> mapController =
+      Completer<GoogleMapController>();
+
+  static const CameraPosition _kGooglePlex = CameraPosition(
+    target: LatLng(-34.5752213, -71.0153043),
+    zoom: 13.850,
+  );
+
+  static const CameraPosition _kLake = CameraPosition(
+      bearing: 192.8334901395799,
+      target: LatLng(37.43296265331129, -122.08832357078792),
+      tilt: 59.440717697143555,
+      zoom: 19.151926040649414);
+
   Widget textFieldUbicacion(TextEditingController controller) {
     return (TextFormField(
-      onTap: () {},
+      onTap: esLugar
+          ? () {
+              setState(() {
+                mostrarDialogMap = true;
+              });
+            }
+          : null,
+      readOnly: true,
       controller: controller,
       style: TextStyle(color: colorNaranja, fontSize: 18),
       decoration: InputDecoration(
@@ -611,9 +637,13 @@ class _crearEventoUIState extends State<crearEventoUI> {
     ));
   }
 
+  Set<Marker> markers = {};
+  Set<Polygon> polygons = {};
   Widget textFieldImagenes() {
+    var pressed = 0;
     return (TextFormField(
       //controller: nombreEventoController,
+
       style: TextStyle(color: colorNaranja, fontSize: 18),
       decoration: InputDecoration(
         prefixIcon: Icon(Icons.image, color: colorNaranja, size: 24),
@@ -832,7 +862,7 @@ class _crearEventoUIState extends State<crearEventoUI> {
     });
 
     return Container(
-        height: MediaQuery.of(context).size.height - 180,
+        height: MediaQuery.of(context).size.height - 160,
         //color: Colors.blue,
         child: Container(
           margin: EdgeInsets.only(left: 70, right: 70, top: 50),
@@ -925,137 +955,273 @@ class _crearEventoUIState extends State<crearEventoUI> {
     return retorno;
   }
 
-  Widget vistaWeb() {
-    return (Dialog(
-      backgroundColor: Color.fromARGB(0, 0, 0, 0),
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 500),
-        curve: Curves.easeInOutBack,
-        height: MediaQuery.of(context).size.height - 50,
-        width: 1280,
-        decoration: BoxDecoration(
-            color: colorScaffold,
-            borderRadius: BorderRadius.circular(40),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.5),
-                spreadRadius: 5,
-                blurRadius: 7,
-                offset: Offset(0, 3), // changes position of shadow
-              ),
-            ]),
-        child: Container(
-            margin: EdgeInsets.only(
-                top: 50,
-                left: dispositivo == 'PC' ? 0 : 0,
-                right: dispositivo == 'PC' ? 0 : 0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Container(
-                    width: MediaQuery.of(context).size.width * 0.6,
-                    height: 70,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(40),
-                        color: colorNaranja,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.5),
-                            spreadRadius: 5,
-                            blurRadius: 7,
-                            offset: Offset(0, 3), // changes position of shadow
-                          ),
-                        ]),
-                    child: Stack(
-                      children: [
-                        Center(
-                            child: Text(
-                          'Crear evento',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: AnimatedContainer(
-                            duration: Duration(milliseconds: 500),
-                            curve: Curves.easeInOutBack,
-                            width: mostrarData ? 250 : 80,
-                            height: 70,
-                            decoration: BoxDecoration(
-                                color: colorMorado,
-                                borderRadius: BorderRadius.circular(40)),
-                            child: GestureDetector(
-                              onTap: (() {
-                                print(listaResenas);
-                                setState(() {
-                                  mostrarData = !mostrarData;
+  var direccion = '';
 
-                                  mostrarControl2 = false;
-                                });
-                                Future.delayed(
-                                    Duration(
-                                        milliseconds: mostrarData2 ? 50 : 550),
-                                    () {
-                                  setState(() {
-                                    mostrarData2 = !mostrarData2;
-                                    mostrarControl = false;
-                                  });
-                                });
-                              }),
-                              child: mostrarData2
-                                  ? Center(
-                                      child: Text(
-                                        'Eventos',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    )
-                                  : Icon(
-                                      Icons.event,
-                                      color: colorNaranja,
-                                      size: 50,
-                                    ),
-                            ),
-                          ),
-                        ),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: AnimatedContainer(
-                            duration: Duration(milliseconds: 500),
-                            curve: Curves.easeInOutBack,
-                            width: 250,
-                            height: 70,
-                            decoration: BoxDecoration(
-                                color: colorMorado,
-                                borderRadius: BorderRadius.circular(40)),
-                            child: GestureDetector(
-                                child: Center(
-                              child: Text(
-                                widget.tipoUI == 'Reseñas guardadas' &&
-                                        resenasGuardadas.isEmpty
-                                    ? ''
-                                    : obtenerNombreUser(nombreResenaActual),
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
+  Future<void> obtenerDireccion() async {
+    await get(Uri.parse(
+            'https://maps.googleapis.com/maps/api/geocode/json?latlng=${ubicacionLatLng.latitude},${ubicacionLatLng.longitude}&key=AIzaSyBbCK8kW7t2PwLHPCo417wfS5gww8YLS1c'))
+        .then((value) => jsonDecode(value.body))
+        .then((value) => {
+              print(value),
+              setState(() {
+                direccion = value['results'][0]['address_components'][1]
+                        ['long_name'] +
+                    ' #' +
+                    value['results'][0]['address_components'][0]['short_name'] +
+                    ', ' +
+                    value['results'][0]['address_components'][2]['short_name'];
+                mostrarDialogMap = false;
+                ubicacionController.text = direccion;
+              })
+            });
+    print(direccion);
+  }
+
+  var pressed = 0;
+  Widget vistaWeb() {
+    return (Stack(
+      children: [
+        Dialog(
+          backgroundColor: Color.fromARGB(0, 0, 0, 0),
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: 500),
+            curve: Curves.easeInOutBack,
+            height: MediaQuery.of(context).size.height - 50,
+            width: 1280,
+            decoration: BoxDecoration(
+                color: colorScaffold,
+                borderRadius: BorderRadius.circular(40),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.5),
+                    spreadRadius: 5,
+                    blurRadius: 7,
+                    offset: Offset(0, 3), // changes position of shadow
+                  ),
+                ]),
+            child: Container(
+                margin: EdgeInsets.only(
+                    top: 20,
+                    left: dispositivo == 'PC' ? 0 : 0,
+                    right: dispositivo == 'PC' ? 0 : 0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Container(
+                        width: MediaQuery.of(context).size.width * 0.6,
+                        height: 70,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(40),
+                            color: colorNaranja,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.5),
+                                spreadRadius: 5,
+                                blurRadius: 7,
+                                offset:
+                                    Offset(0, 3), // changes position of shadow
+                              ),
+                            ]),
+                        child: Stack(
+                          children: [
+                            Center(
+                                child: Text(
+                              'Crear evento',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold,
                               ),
                             )),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 500),
+                                curve: Curves.easeInOutBack,
+                                width: mostrarData ? 250 : 80,
+                                height: 70,
+                                decoration: BoxDecoration(
+                                    color: colorMorado,
+                                    borderRadius: BorderRadius.circular(40)),
+                                child: GestureDetector(
+                                  onTap: (() {
+                                    print(listaResenas);
+                                    setState(() {
+                                      mostrarData = !mostrarData;
+
+                                      mostrarControl2 = false;
+                                    });
+                                    Future.delayed(
+                                        Duration(
+                                            milliseconds:
+                                                mostrarData2 ? 50 : 550), () {
+                                      setState(() {
+                                        mostrarData2 = !mostrarData2;
+                                        mostrarControl = false;
+                                      });
+                                    });
+                                  }),
+                                  child: mostrarData2
+                                      ? Center(
+                                          child: Text(
+                                            'Eventos',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        )
+                                      : Icon(
+                                          Icons.event,
+                                          color: colorNaranja,
+                                          size: 50,
+                                        ),
+                                ),
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 500),
+                                curve: Curves.easeInOutBack,
+                                width: 250,
+                                height: 70,
+                                decoration: BoxDecoration(
+                                    color: colorMorado,
+                                    borderRadius: BorderRadius.circular(40)),
+                                child: GestureDetector(
+                                    child: Center(
+                                  child: Text(
+                                    widget.tipoUI == 'Reseñas guardadas' &&
+                                            resenasGuardadas.isEmpty
+                                        ? ''
+                                        : obtenerNombreUser(nombreResenaActual),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                )),
+                              ),
+                            ),
+                          ],
+                        )),
+                    Container(child: vistaCrearEvento()),
+                  ],
+                )),
+          ),
+        ),
+        mostrarDialogMap
+            ? Center(
+                child: Container(
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: MediaQuery.of(context).size.height * 0.8,
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.5),
+                      spreadRadius: 5,
+                      blurRadius: 7,
+                      offset: Offset(0, 3), // changes position of shadow
+                    ),
+                  ],
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Stack(
+                      children: [
+                        GoogleMap(
+                          onTap: ((argument) => {
+                                setState(() {
+                                  pressed++;
+                                  if (pressed == 5) {
+                                    pressed = 0;
+                                    mostrarBtnUbicacion = true;
+                                    ubicacionLatLng = argument;
+                                  } else if (pressed == 1) {
+                                    mostrarBtnUbicacion = false;
+                                  }
+                                }),
+                                print(pressed),
+                                print(mostrarBtnUbicacion)
+                              }),
+                          mapType: MapType.hybrid,
+                          initialCameraPosition: _kGooglePlex,
+                          onMapCreated: (GoogleMapController controller) {
+                            mapController.complete(controller);
+                          },
+                          markers: markers,
+                        ),
+                        Container(
+                          //color: Colors.black,
+                          margin: EdgeInsets.only(top: 20, left: 20, right: 20),
+                          height: 40,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              mostrarBtnUbicacion
+                                  ? TextButton.icon(
+                                      style: ButtonStyle(
+                                          backgroundColor:
+                                              MaterialStateProperty.all<Color>(
+                                                  colorNaranja),
+                                          shape: MaterialStateProperty.all<
+                                                  RoundedRectangleBorder>(
+                                              RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                          )),
+                                          padding: MaterialStateProperty.all<
+                                                  EdgeInsetsGeometry>(
+                                              EdgeInsets.symmetric(
+                                                  vertical: 10,
+                                                  horizontal: 20)),
+                                          side: MaterialStateProperty.all<BorderSide>(
+                                              BorderSide(
+                                                  color: colorNaranja,
+                                                  width: 0.0,
+                                                  style: BorderStyle.solid))),
+                                      onPressed: () async {
+                                        await obtenerDireccion();
+                                      },
+                                      icon: Icon(
+                                        Icons.location_on_outlined,
+                                        color: colorMorado,
+                                      ),
+                                      label: Text(
+                                        'Agregar direccion',
+                                        style: TextStyle(
+                                            color: colorMorado,
+                                            fontWeight: FontWeight.bold),
+                                      ))
+                                  : Container(),
+                              Container(
+                                height: 30,
+                                child: FloatingActionButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      mostrarDialogMap = false;
+                                    });
+                                  },
+                                  backgroundColor: colorNaranja,
+                                  child: Icon(
+                                    Icons.exit_to_app_outlined,
+                                    color: colorMorado,
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     )),
-                Container(child: vistaCrearEvento()),
-              ],
-            )),
-      ),
+              ))
+            : Container(),
+      ],
     ));
   }
 
