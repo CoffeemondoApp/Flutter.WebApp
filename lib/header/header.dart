@@ -49,9 +49,16 @@ class _HeaderState extends State<Header> {
       setState(() {
         openShoppingCart = true;
       });
-      cerrarModuloCafeteria("Cafeteria");
-      cerrarModuloEventos("Eventos");
       cerrarModuloResenas("Reseñas");
+      cerrarModuloCafeteria('Cafeterias');
+      cerrarModuloCarrito(menu);
+      cerrarModuloEventos("Eventos");
+      Future.delayed(Duration(milliseconds: 600), () {
+        setState(() {
+          feedbackUI = menu;
+          openShoppingCart = true;
+        });
+      });
     }
   }
 
@@ -603,8 +610,9 @@ class _HeaderState extends State<Header> {
         child: InkWell(
           onHover: (value) => {
             print(value),
-            dispositivo == 'PC' ? disparadorBtnSideBar(menu, value) : null,
-            menu == "Carrito" ? hoverSideBar = false : null
+            dispositivo == 'PC' && menu != "Carrito"
+                ? disparadorBtnSideBar(menu, value)
+                : null,
           },
           onTap: () {
             if (menu == 'Cafeterias') {
@@ -632,9 +640,19 @@ class _HeaderState extends State<Header> {
                       : abrirSubMenu(menu)
                   : cerrarSubMenu(menu);
             } else if (menu == 'Carrito') {
-              dispositivo != 'PC' ? abrirCarritoUI(menu) : openShoppingCart;
-              abrirCarritoUI(menu);
-              cerrarModuloCafeteria("Cafeteria");
+              setState(() {
+                openAllfeedback = false;
+              });
+              disparadorBtnSideBar(menu, true);
+              cerrarModuloResenas("Reseñas");
+              cerrarModuloCafeteria('Cafeterias');
+
+              cerrarModuloEventos("Eventos");
+              dispositivo != 'PC'
+                  ? openShoppingCart
+                      ? cerrarSubMenu(menu)
+                      : abrirCarritoUI(menu)
+                  : cerrarSubMenu(menu);
             } else if (menu == 'Mi cuenta') {
               dispositivo != 'PC'
                   ? mostrarMenuCuenta
@@ -689,6 +707,7 @@ class _HeaderState extends State<Header> {
                               : abrirSubMenu(menu)
                           : cerrarSubMenu(menu);
                     } else if (menu == 'Carrito') {
+                      disparadorBtnSideBar(menu, true);
                       dispositivo != 'PC'
                           ? abrirCarritoUI(menu)
                           : openShoppingCart;
@@ -827,6 +846,10 @@ class _HeaderState extends State<Header> {
         cerrarData();
       } else if (menu == 'Crear evento') {
         mostrarCrearEvento();
+        cerrarVision();
+        cerrarData();
+        cerrarLogin();
+        disparadorCerrarSidebar();
       }
     }
   }

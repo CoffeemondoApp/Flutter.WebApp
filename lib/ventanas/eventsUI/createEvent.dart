@@ -1,8 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
+import 'dart:io' as io;
 import 'dart:math';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dropzone/flutter_dropzone.dart';
 import 'package:geocode/geocode.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart';
@@ -54,6 +58,11 @@ class _crearEventoUIState extends State<crearEventoUI> {
   var listaResenas = [];
   var ubicacionLatLng = LatLng(0, 0);
   var hoveredAddLocation = false;
+  var duracionEvento = 0;
+  var calcularIngresos = false;
+  var nombreImagen = '';
+  var formValidado = false;
+  var mostrarBtnAddEvent = false;
 
   TextEditingController cafeteriaController = TextEditingController();
   TextEditingController lugarController = TextEditingController();
@@ -63,6 +72,8 @@ class _crearEventoUIState extends State<crearEventoUI> {
   TextEditingController fechasEventoController = TextEditingController();
   TextEditingController capacidadMaxController = TextEditingController();
   TextEditingController precioController = TextEditingController();
+  TextEditingController imagenController = TextEditingController();
+  TextEditingController entradasSeparadasController = TextEditingController();
 
   var tarjetaScrolled = false;
 
@@ -307,8 +318,7 @@ class _crearEventoUIState extends State<crearEventoUI> {
                 color: !esLugar ? colorNaranja : Colors.grey, size: 24),
             hintText: "Seleccionar cafeteria del evento",
             hintStyle: TextStyle(
-              color: !esLugar ? colorNaranja : Colors.grey,
-            ),
+                color: !esLugar ? colorNaranja : Colors.grey, fontSize: 18),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
             ),
@@ -335,6 +345,7 @@ class _crearEventoUIState extends State<crearEventoUI> {
               : (value) {
                   //poner en el controller de ubicacion el nombre de la cafeteria
                   setState(() {
+                    controller.text = value.toString();
                     ubicacionController.text =
                         obtenerUbicacionCafeteria(value.toString());
                   });
@@ -508,6 +519,8 @@ class _crearEventoUIState extends State<crearEventoUI> {
 
           if (pickeddate != null) {
             //Cambiar formato de daterangepicker a dd/mm/yyyy
+            print((pickeddate.duration.inDays + 1).toString());
+
             var fecha_cambiada = cambiarFormatoFecha(pickeddate);
             var fecha_evento = fecha_cambiada.split(' - ');
             var fecha_evento_inicio = fecha_evento[0].split(' ');
@@ -516,6 +529,7 @@ class _crearEventoUIState extends State<crearEventoUI> {
             setState(() {
               controller.text =
                   transformarFechas(pickeddate.start, pickeddate.end);
+              duracionEvento = (pickeddate.duration.inDays + 1);
             });
           }
         },
@@ -555,7 +569,7 @@ class _crearEventoUIState extends State<crearEventoUI> {
         maxLines: null,
         minLines: 4,
         maxLength: 120,
-        //controller: nombreEventoController,
+        controller: controller,
         style: TextStyle(color: colorNaranja, fontSize: 18),
         decoration: InputDecoration(
           prefixIcon: Icon(Icons.description, color: colorNaranja, size: 24),
@@ -637,45 +651,93 @@ class _crearEventoUIState extends State<crearEventoUI> {
     ));
   }
 
+  late Uint8List uploadedImage;
+  var listaImagenes = [];
+  _startFilePicker() async {
+    FileUploadInputElement uploadInput = FileUploadInputElement();
+    uploadInput.click();
+
+    uploadInput.onChange.listen((e) {
+      // read file content as dataURL
+      final files = uploadInput.files;
+      setState(() {
+        listaImagenes = files!;
+      });
+      if (files?.length == 1) {
+        final file = files![0];
+        FileReader reader = FileReader();
+
+        reader.onLoadEnd.listen((e) {
+          setState(() {
+            uploadedImage = reader.result as Uint8List;
+          });
+          nombreImagen = file.name;
+          print(reader);
+        });
+
+        reader.onError.listen((fileEvent) {
+          setState(() {
+            print(
+                "Some Error occured while reading the file as an ArrayBuffer: " +
+                    fileEvent.toString());
+          });
+        });
+
+        reader.readAsArrayBuffer(file);
+      }
+    });
+  }
+
   Set<Marker> markers = {};
   Set<Polygon> polygons = {};
-  Widget textFieldImagenes() {
-    var pressed = 0;
-    return (TextFormField(
-      //controller: nombreEventoController,
-
-      style: TextStyle(color: colorNaranja, fontSize: 18),
-      decoration: InputDecoration(
-        prefixIcon: Icon(Icons.image, color: colorNaranja, size: 24),
-        hintText: "Imagen del evento",
-        hintStyle: TextStyle(
-          color: colorNaranja,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(
-            color: colorNaranja, // Aquí puedes asignar el color que desees
+  Widget textFieldImagenes(TextEditingController controller) {
+    return InkWell(
+        onTap: () async {
+          await _startFilePicker();
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: colorNaranja, width: 1),
+            borderRadius: BorderRadius.circular(20),
           ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(
-              color: colorNaranja,
-              width: 2 // Aquí puedes asignar el color que desees
-              ),
-        ),
-      ),
-    ));
+          child: Container(
+            margin: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.image_outlined, color: colorNaranja, size: 24),
+                    Container(
+                      margin: EdgeInsets.only(left: 10),
+                      child: Text(
+                        listaImagenes.isNotEmpty
+                            ? nombreImagen
+                            : 'Imagenes del evento',
+                        style: TextStyle(color: colorNaranja, fontSize: 18),
+                      ),
+                    ),
+                  ],
+                ),
+                listaImagenes.isNotEmpty
+                    ? Container(
+                        child: Image.memory(
+                          uploadedImage,
+                          height: 20,
+                        ),
+                      )
+                    : Container(),
+              ],
+            ),
+          ),
+        ));
   }
 
   Widget textFieldCapacidadMax(TextEditingController controller) {
     return (Container(
         width: 300,
         child: TextFormField(
-          //controller: nombreEventoController,
+          controller: controller,
           style: TextStyle(color: colorNaranja, fontSize: 18),
           decoration: InputDecoration(
             prefixIcon: Icon(Icons.groups, color: colorNaranja, size: 24),
@@ -708,7 +770,7 @@ class _crearEventoUIState extends State<crearEventoUI> {
     return (Container(
         width: 300,
         child: TextFormField(
-          //controller: nombreEventoController,
+          controller: controller,
           style: TextStyle(color: colorNaranja, fontSize: 18),
           decoration: InputDecoration(
             prefixIcon: Icon(Icons.attach_money_outlined,
@@ -742,12 +804,13 @@ class _crearEventoUIState extends State<crearEventoUI> {
     return (Container(
         width: 300,
         child: TextFormField(
-          //controller: nombreEventoController,
+          controller: controller,
           style: TextStyle(color: colorNaranja, fontSize: 18),
           decoration: InputDecoration(
+            suffix: Text('Entradas', style: TextStyle(color: colorNaranja)),
             prefixIcon: Icon(Icons.confirmation_num_outlined,
                 color: colorNaranja, size: 24),
-            hintText: "Ingrese entradas por separar",
+            hintText: "Separar entradas",
             hintStyle: TextStyle(
               color: colorNaranja,
             ),
@@ -769,6 +832,17 @@ class _crearEventoUIState extends State<crearEventoUI> {
             ),
           ),
         )));
+  }
+
+  int obtenerIngresosEstimados() {
+    int ingresosEstimados = 0;
+    int precio = int.parse(precioController.text);
+    int capacidad = int.parse(capacidadMaxController.text);
+    int entradasSeparadas = int.parse(entradasSeparadasController.text);
+    int dias = duracionEvento;
+    ingresosEstimados =
+        (precio * capacidad * dias) - (precio * entradasSeparadas);
+    return ingresosEstimados;
   }
 
   final numberFormat = NumberFormat.currency(
@@ -800,7 +874,8 @@ class _crearEventoUIState extends State<crearEventoUI> {
                   ),
                 ),
                 Text(
-                  numberFormat.format(2045678),
+                  numberFormat.format(
+                      calcularIngresos ? obtenerIngresosEstimados() : 0),
                   style: TextStyle(
                       color: colorNaranja,
                       fontSize: 18,
@@ -820,7 +895,9 @@ class _crearEventoUIState extends State<crearEventoUI> {
                   ),
                 ),
                 Text(
-                  numberFormat.format((2045678 * 0.1)),
+                  numberFormat.format(calcularIngresos
+                      ? (obtenerIngresosEstimados() * 0.1)
+                      : 0),
                   style: TextStyle(
                       color: colorNaranja,
                       fontSize: 18,
@@ -840,7 +917,10 @@ class _crearEventoUIState extends State<crearEventoUI> {
                   ),
                 ),
                 Text(
-                  numberFormat.format(2045678 - (2045678 * 0.1)),
+                  numberFormat.format(calcularIngresos
+                      ? (obtenerIngresosEstimados() -
+                          (obtenerIngresosEstimados() * 0.1))
+                      : 0),
                   style: TextStyle(
                       color: colorNaranja,
                       fontSize: 18,
@@ -852,6 +932,78 @@ class _crearEventoUIState extends State<crearEventoUI> {
         ),
       ),
     ));
+  }
+
+  var hoveredBtnAddEvent = false;
+  var mostrarErrorBuild = false;
+
+  var mostrarSuccessBuild = false;
+  var textSuccessBuild = '';
+  var textErrorBuild = '';
+  var eventosCollection = FirebaseFirestore.instance.collection('eventos');
+  UploadTask? uploadTask;
+
+  Future subirImagen() async {
+    // Se crea la ruta de la imagen en el Storage con el nombre del documento creado en la coleccion
+    final path = 'evento_evento_image/${eventosCollection.doc().id}.jpg';
+    // Se crea la referencia de la imagen en el Storage
+    final storageReference = FirebaseStorage.instance.ref(path);
+    UploadTask uploadTask = storageReference.putData(uploadedImage);
+    TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+    String url = await taskSnapshot.ref.getDownloadURL();
+    return url;
+  }
+
+  Future<void> guardarInformacion(String uidUsuario) async {
+    return eventosCollection.doc().set({
+      'nombre': nombreEventoController.text,
+      'descripcion': descripcionController.text,
+      'fecha': fechasEventoController.text,
+      'ubicacion': ubicacionController.text,
+      'cafeteria': cafeteriaController.text,
+      'lugar': lugarController.text,
+      'capacidadMax': int.parse(capacidadMaxController.text),
+      'precio': int.parse(precioController.text),
+      'entradasSeparadas': int.parse(entradasSeparadasController.text),
+      'ingresosEstimados': obtenerIngresosEstimados(),
+      'comision': (obtenerIngresosEstimados() * 0.1),
+      'ingresosNeto':
+          (obtenerIngresosEstimados() - (obtenerIngresosEstimados() * 0.1)),
+      'tickets': constructorTickets(
+          int.parse(capacidadMaxController.text), duracionEvento),
+      'imagen': await subirImagen(),
+      'uidCafeteria': cafeteriaController.text,
+      'uidComercial': uidUsuario,
+      'duracion': duracionEvento,
+      'estado': 'activo'
+    });
+  }
+
+  void generarEvento() {
+    var uidUser = FirebaseAuth.instance.currentUser!.uid;
+
+    eventosCollection //agregar el evento a la coleccion de datos
+        .where('nombre', isNotEqualTo: nombreEventoController.text)
+        .get()
+        .then((QuerySnapshot querySnapshot) async {
+      if (querySnapshot.docs.isNotEmpty) {
+        await guardarInformacion(uidUser);
+
+        setState(() {
+          mostrarErrorBuild = false;
+          mostrarSuccessBuild = true;
+          textSuccessBuild = 'Evento creado exitosamente';
+        });
+        print(textSuccessBuild);
+      } else {
+        setState(() {
+          mostrarErrorBuild = true;
+          mostrarSuccessBuild = false;
+          textErrorBuild = 'El nombre del evento ya existe';
+        });
+        print(textErrorBuild);
+      }
+    });
   }
 
   Widget vistaCrearEvento() {
@@ -866,81 +1018,119 @@ class _crearEventoUIState extends State<crearEventoUI> {
         //color: Colors.blue,
         child: Container(
           margin: EdgeInsets.only(left: 70, right: 70, top: 50),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  textFieldNombreEvento(nombreEventoController),
-                  textFieldFechaEvento(fechasEventoController),
-                ],
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  textFieldSelectCafeteria(cafeteriaController),
-                  switchCafeteriaLugar(),
-                  textFieldInputLugar(lugarController)
-                ],
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  textFieldDescripcion(descripcionController),
-                  Container(
-                    width: 500,
-                    height: 135,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        textFieldUbicacion(ubicacionController),
-                        textFieldImagenes(),
-                      ],
-                    ),
+          child: Column(children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                textFieldNombreEvento(nombreEventoController),
+                textFieldFechaEvento(fechasEventoController),
+              ],
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                textFieldSelectCafeteria(cafeteriaController),
+                switchCafeteriaLugar(),
+                textFieldInputLugar(lugarController)
+              ],
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                textFieldDescripcion(descripcionController),
+                Container(
+                  width: 500,
+                  height: 135,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      textFieldUbicacion(ubicacionController),
+                      textFieldImagenes(imagenController),
+                    ],
                   ),
-                ],
-              ),
-              Container(
-                margin: EdgeInsets.only(top: 40, bottom: 20),
-                height: 3,
-                decoration: BoxDecoration(
-                  color: colorMorado,
-                  borderRadius: BorderRadius.circular(80),
                 ),
+              ],
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 40, bottom: 20),
+              height: 3,
+              decoration: BoxDecoration(
+                color: colorMorado,
+                borderRadius: BorderRadius.circular(80),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  textFieldCapacidadMax(capacidadMaxController),
-                  textFieldPrecio(precioController),
-                  textFieldSepararEntradas(precioController)
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  dashboardComercial(),
-                  Container(
-                    margin: EdgeInsets.only(top: 40),
-                    width: 750,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: colorNaranja,
-                      borderRadius: BorderRadius.circular(20),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                textFieldCapacidadMax(capacidadMaxController),
+                textFieldPrecio(precioController),
+                textFieldSepararEntradas(entradasSeparadasController)
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                dashboardComercial(),
+                Container(
+                  margin: EdgeInsets.only(top: 40),
+                  width: 750,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: colorNaranja,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(),
+                )
+              ],
+            ),
+            mostrarBtnAddEvent
+                ? InkWell(
+                    onHover: (value) {
+                      setState(() {
+                        hoveredBtnAddEvent = value;
+                      });
+                    },
+                    onTap: () {
+                      generarEvento();
+                    },
+                    child: AnimatedContainer(
+                      width: 300,
+                      height: 30,
+                      margin: EdgeInsets.only(top: 10),
+                      decoration: BoxDecoration(
+                        color: hoveredBtnAddEvent ? colorMorado : colorNaranja,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      duration: Duration(milliseconds: 500),
+                      curve: Curves.easeInOutBack,
+                      child: Container(
+                          child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.rocket_launch_outlined,
+                              color: hoveredBtnAddEvent
+                                  ? colorNaranja
+                                  : colorMorado,
+                              size: 20),
+                          Text('Generar evento',
+                              style: TextStyle(
+                                  color: hoveredBtnAddEvent
+                                      ? colorNaranja
+                                      : colorMorado,
+                                  fontSize: 18))
+                        ],
+                      )),
                     ),
-                    child: Row(),
                   )
-                ],
-              )
-            ],
-          ),
+                : Container(),
+          ]),
         ));
   }
 
@@ -1272,6 +1462,54 @@ class _crearEventoUIState extends State<crearEventoUI> {
     setState(() {
       pantalla = ancho_pantalla;
     });
+
+    if (nombreEventoController.text != '' &&
+        descripcionController.text != '' &&
+        ubicacionController.text != '' &&
+        precioController.text != '' &&
+        capacidadMaxController.text != '' &&
+        entradasSeparadasController.text != '' &&
+        fechasEventoController.text != '' &&
+        listaImagenes.isNotEmpty) {
+      if (esLugar) {
+        if (lugarController.text != '') {
+          setState(() {
+            mostrarBtnAddEvent = true;
+          });
+        } else {
+          setState(() {
+            mostrarBtnAddEvent = false;
+          });
+        }
+      } else {
+        if (cafeteriaController.text != '') {
+          setState(() {
+            mostrarBtnAddEvent = true;
+          });
+        } else {
+          setState(() {
+            mostrarBtnAddEvent = false;
+          });
+        }
+      }
+    } else {
+      setState(() {
+        mostrarBtnAddEvent = false;
+      });
+    }
+
+    if (precioController.text != '' &&
+        capacidadMaxController.text != '' &&
+        entradasSeparadasController.text != '' &&
+        fechasEventoController.text != '') {
+      setState(() {
+        calcularIngresos = true;
+      });
+    } else {
+      setState(() {
+        calcularIngresos = false;
+      });
+    }
 
     setState(() {
       if (ancho_pantalla > 1130) {
