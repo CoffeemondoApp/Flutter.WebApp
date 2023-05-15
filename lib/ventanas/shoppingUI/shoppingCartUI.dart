@@ -1,7 +1,11 @@
 import 'dart:convert';
-import 'dart:html';
+import 'dart:html' as html;
 import 'dart:ui';
-
+import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:js/js.dart';
+import 'package:quickalert/quickalert.dart';
+import 'package:cool_alert/cool_alert.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
@@ -24,6 +28,7 @@ import '../templates/cardTemplate.dart';
 import "../eventosUI/allEvents.dart";
 import "../../header/header.dart";
 import 'package:mercadopago_sdk/mercadopago_sdk.dart';
+import 'package:art_sweetalert/art_sweetalert.dart';
 
 void main() {
   runApp(GetMaterialApp(
@@ -77,6 +82,22 @@ class _ShoppingUIState extends State<ShoppingUI> {
   void initState() {
     super.initState();
     eventosUI = EventosUI(tipoUI: "carrito");
+
+    //setup listener ---------------------------------
+    // Registra un listener para el evento "message"
+    html.window.addEventListener("message", (html.Event event) {
+      // Convierte la lista de path en una cadena separada por "/"
+      String message = event.path.map((e) => e.toString()).join("/");
+      // Muestra un dialog en caso de éxito
+      ArtSweetAlert.show(
+          context: context,
+          artDialogArgs: ArtDialogArgs(
+              type: ArtSweetAlertType.success,
+              title: "Pago completado con exito!",
+              text: "Nos vemos pronto"));
+      // Muestra el mensaje en la consola
+      print("Mensaje recibido desde JavaScript: $message");
+    });
 
     try {
       _controller = VideoPlayerController.network(
@@ -290,66 +311,72 @@ class _ShoppingUIState extends State<ShoppingUI> {
                       ),
                       Expanded(
                           flex: 150,
-                          child: Column(
-                            children: fechasSeleccionadas.map((fecha) {
-                              final index = todasLasFechas.indexOf(fecha);
-                              final cantidad = cantidadesPorFecha[fecha] ?? 0;
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Fecha: ${DateFormat('dd/MMM/yyyy').format(fecha)}",
-                                    style: TextStyle(color: colorMorado),
-                                  ),
-                                  FormBuilderDropdown(
-                                    dropdownColor: colorNaranja,
-                                    focusColor: Colors.transparent,
-                                    name: 'cantidad${index + 1}',
-                                    decoration: InputDecoration(),
-                                    items: [
-                                      DropdownMenuItem(
-                                        value: 0,
-                                        child: Text(
-                                          '0',
-                                          style: TextStyle(color: colorMorado),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: fechasSeleccionadas.map((fecha) {
+                                final index = todasLasFechas.indexOf(fecha);
+                                final cantidad = cantidadesPorFecha[fecha] ?? 0;
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Fecha: ${DateFormat('dd/MMM/yyyy').format(fecha)}",
+                                      style: TextStyle(color: colorMorado),
+                                    ),
+                                    FormBuilderDropdown(
+                                      dropdownColor: colorNaranja,
+                                      focusColor: Colors.transparent,
+                                      name: 'cantidad${index + 1}',
+                                      decoration: InputDecoration(),
+                                      items: [
+                                        DropdownMenuItem(
+                                          value: 0,
+                                          child: Text(
+                                            '0',
+                                            style:
+                                                TextStyle(color: colorMorado),
+                                          ),
                                         ),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 1,
-                                        child: Text(
-                                          '1',
-                                          style: TextStyle(color: colorMorado),
+                                        DropdownMenuItem(
+                                          value: 1,
+                                          child: Text(
+                                            '1',
+                                            style:
+                                                TextStyle(color: colorMorado),
+                                          ),
                                         ),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 2,
-                                        child: Text(
-                                          '2',
-                                          style: TextStyle(color: colorMorado),
+                                        DropdownMenuItem(
+                                          value: 2,
+                                          child: Text(
+                                            '2',
+                                            style:
+                                                TextStyle(color: colorMorado),
+                                          ),
                                         ),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 3,
-                                        child: Text(
-                                          '3',
-                                          style: TextStyle(color: colorMorado),
+                                        DropdownMenuItem(
+                                          value: 3,
+                                          child: Text(
+                                            '3',
+                                            style:
+                                                TextStyle(color: colorMorado),
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                    onChanged: (value) {
-                                      setState(() {
-                                        final index =
-                                            todasLasFechas.indexOf(fecha);
-                                        cantidadesPorFecha[fecha] =
-                                            int.parse(value.toString());
-                                        print(cantidadesPorFecha);
-                                      });
-                                    },
-                                    initialValue: cantidad,
-                                  ),
-                                ],
-                              );
-                            }).toList(),
+                                      ],
+                                      onChanged: (value) {
+                                        setState(() {
+                                          final index =
+                                              todasLasFechas.indexOf(fecha);
+                                          cantidadesPorFecha[fecha] =
+                                              int.parse(value.toString());
+                                          print(cantidadesPorFecha);
+                                        });
+                                      },
+                                      initialValue: cantidad,
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
                           ))
                     ],
                   ),
@@ -367,27 +394,38 @@ class _ShoppingUIState extends State<ShoppingUI> {
                     foregroundColor: colorNaranja,
                   ),
                   onPressed: () {
-                    if (_formKey.currentState!.saveAndValidate()) {
-                      var formData = _formKey.currentState!.value;
+                    if (fechasSeleccionadas.isNotEmpty &&
+                        cantidadesPorFecha.values
+                            .any((cantidad) => cantidad > 0)) {
+                      if (_formKey.currentState!.saveAndValidate()) {
+                        var formData = _formKey.currentState!.value;
 
-                      // Aquí puedes hacer lo que quieras con los valores de fecha y cantidad
+                        // Aquí puedes hacer lo que quieras con los valores de fecha y cantidad
 
-                      //Snack si es que corresponde
-/*                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content:
-                              Text('Tu entrada ha sido agregada al carrito'),
-                        ),
-                      ); */
+                        //Snack si es que corresponde
+                        /*  ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content:
+                                Text('Tu entrada ha sido agregada al carrito'),
+                          ),
+                        ); */
 
-                      setState(() {
-                        mostrarDatosUsuario = true;
-                        mostrarFormulario = false;
-                      });
+                        setState(() {
+                          mostrarDatosUsuario = true;
+                          mostrarFormulario = false;
+                        });
+                      } else {
+                        setState(() {
+                          autoValidate = true;
+                        });
+                      }
                     } else {
-                      setState(() {
-                        autoValidate = true;
-                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              'Debes seleccionar al menos una fecha y una cantidad'),
+                        ),
+                      );
                     }
                   },
                   child: Text(
@@ -690,19 +728,6 @@ class _ShoppingUIState extends State<ShoppingUI> {
 
   String nombreEventoActual = "";
 
-  final Map<String, Object> preference = {
-    'items': [
-      {
-        'title': 'Test Product',
-        'description': 'Description',
-        'quantity': 3,
-        'currency_id': 'ARS',
-        'unit_price': 1500,
-      }
-    ],
-    'payer': {'name': 'Buyer G.', 'email': 'test@gmail.com'},
-  };
-
   Future<Map<String, dynamic>> armarPreferencia() async {
     var preference = {
       "items": [
@@ -902,40 +927,42 @@ class _ShoppingUIState extends State<ShoppingUI> {
                       : MediaQuery.of(context).size.width,
                   margin: EdgeInsets.only(left: 0, top: 0),
                   child: cardTemplate(
-                      template: "Eventos",
-                      title: ubicacion,
-                      title2: nombre,
-                      title3: "Precio",
-                      image: urlImagen,
-                      dispositivo: dispositivo,
-                      body: Container(
-                        width: 500,
-                        height: 236,
-                        child: Column(
-                          children: [
-                            Expanded(child: moduloInformacion(descripcion)),
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  moduloFecha(fecha),
-                                  SizedBox(
-                                    height: 5,
-                                  ),
-                                  btnsEvento(
-                                      'Nombre del evento',
-                                      'Creador del evento',
-                                      'ID del evento',
-                                      _eventoSeleccionado,
-                                      entry.value)
-                                ],
-                              ),
+                    template: "Eventos",
+                    title: ubicacion,
+                    title2: nombre,
+                    title3: "Precio",
+                    image: urlImagen,
+                    dispositivo: dispositivo,
+                    body: Container(
+                      width: 500,
+                      height: 236,
+                      child: Column(
+                        children: [
+                          Expanded(child: moduloInformacion(descripcion)),
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                moduloFecha(fecha),
+                                SizedBox(
+                                  height: 5,
+                                ),
+                                btnsEvento(
+                                    'Nombre del evento',
+                                    'Creador del evento',
+                                    'ID del evento',
+                                    _eventoSeleccionado,
+                                    entry.value)
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      icon: Icons.location_on));
+                    ),
+                    icon: Icons.location_on,
+                    building: '',
+                  ));
             }).toList(),
           ),
         );
@@ -955,6 +982,344 @@ class _ShoppingUIState extends State<ShoppingUI> {
         child: vistaCarrito(listaCompras));
   }
 
+/* ----------------------Info GPAY--------------------------------------- */
+  /* -------------------CANAL ENTRE JS Y FLUTTER------------- */
+  final webViewChannel = EventChannel('webViewChannel');
+  late WebViewXController webviewController;
+  int total = 0;
+  int precioUnitario = 0;
+
+  Widget gpayTest() {
+    var listaCompras = ListaComprasInheritedWidget.of(context).listaCompras;
+    var itemsHtml = '';
+    var displayItems = [];
+
+    listaCompras.forEachIndexed((index, compra) {
+      var item = compra["compra${index + 1}"];
+      itemsHtml += item["eventoNombre"];
+      var cantidad = int.parse(item['cantidad'] ?? '1');
+      var precioTotal = cantidad * int.parse(item["precio"]);
+      var nombrEvento = item["eventoNombre"];
+      total += precioTotal;
+      var precio = int.parse(item["precio"]);
+      precioUnitario = precio;
+
+      displayItems.add({
+        'label': itemsHtml,
+        'type': 'SUBTOTAL',
+        'price': "$precioTotal",
+      });
+    });
+
+    setState(() {
+      this.total = total;
+    });
+
+    return WebViewX(
+      width: MediaQuery.of(context).size.width,
+      height: 100,
+      initialContent: '''
+      <html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Basic Example</title>
+
+  </head>
+  <body style="margin:0; padding: 0;">
+  <div id="container" style="width: 407px; height: 45px;"></div>
+ 
+    <script async
+      src="https://pay.google.com/gp/p/js/pay.js"
+      onload="onGooglePayLoaded()"></script>
+    <script>
+      /**
+ * Define the version of the Google Pay API referenced when creating your
+ * configuration
+ *
+ * @see {@link https://developers.google.com/pay/api/web/reference/request-objects#PaymentDataRequest|apiVersion in PaymentDataRequest}
+ */
+const baseRequest = {
+  apiVersion: 2,
+  apiVersionMinor: 0
+};
+
+/**
+ * Card networks supported by your site and your gateway
+ *
+ * @see {@link https://developers.google.com/pay/api/web/reference/request-objects#CardParameters|CardParameters}
+ * @todo confirm card networks supported by your site and gateway
+ */
+const allowedCardNetworks = ["AMEX", "DISCOVER", "INTERAC", "JCB", "MASTERCARD", "VISA"];
+
+/**
+ * Card authentication methods supported by your site and your gateway
+ *
+ * @see {@link https://developers.google.com/pay/api/web/reference/request-objects#CardParameters|CardParameters}
+ * @todo confirm your processor supports Android device tokens for your
+ * supported card networks
+ */
+const allowedCardAuthMethods = ["PAN_ONLY", "CRYPTOGRAM_3DS"];
+
+/**
+ * Identify your gateway and your site's gateway merchant identifier
+ *
+ * The Google Pay API response will return an encrypted payment method capable
+ * of being charged by a supported gateway after payer authorization
+ *
+ * @todo check with your gateway on the parameters to pass
+ * @see {@link https://developers.google.com/pay/api/web/reference/request-objects#gateway|PaymentMethodTokenizationSpecification}
+ */
+const tokenizationSpecification = {
+  type: 'PAYMENT_GATEWAY',
+  parameters: {
+    'gateway': 'example',
+    'gatewayMerchantId': 'exampleGatewayMerchantId'
+  }
+};
+
+/**
+ * Describe your site's support for the CARD payment method and its required
+ * fields
+ *
+ * @see {@link https://developers.google.com/pay/api/web/reference/request-objects#CardParameters|CardParameters}
+ */
+const baseCardPaymentMethod = {
+  type: 'CARD',
+  parameters: {
+    allowedAuthMethods: allowedCardAuthMethods,
+    allowedCardNetworks: allowedCardNetworks
+  }
+};
+
+/**
+ * Describe your site's support for the CARD payment method including optional
+ * fields
+ *
+ * @see {@link https://developers.google.com/pay/api/web/reference/request-objects#CardParameters|CardParameters}
+ */
+const cardPaymentMethod = Object.assign(
+  {},
+  baseCardPaymentMethod,
+  {
+    tokenizationSpecification: tokenizationSpecification
+  }
+);
+
+/**
+ * An initialized google.payments.api.PaymentsClient object or null if not yet set
+ *
+ * @see {@link getGooglePaymentsClient}
+ */
+let paymentsClient = null;
+
+/**
+ * Configure your site's support for payment methods supported by the Google Pay
+ * API.
+ *
+ * Each member of allowedPaymentMethods should contain only the required fields,
+ * allowing reuse of this base request when determining a viewer's ability
+ * to pay and later requesting a supported payment method
+ *
+ * @returns {object} Google Pay API version, payment methods supported by the site
+ */
+function getGoogleIsReadyToPayRequest() {
+  return Object.assign(
+      {},
+      baseRequest,
+      {
+        allowedPaymentMethods: [baseCardPaymentMethod]
+      }
+  );
+}
+
+/**
+ * Configure support for the Google Pay API
+ *
+ * @see {@link https://developers.google.com/pay/api/web/reference/request-objects#PaymentDataRequest|PaymentDataRequest}
+ * @returns {object} PaymentDataRequest fields
+ */
+function getGooglePaymentDataRequest() {
+  const paymentDataRequest = Object.assign({}, baseRequest);
+  paymentDataRequest.allowedPaymentMethods = [cardPaymentMethod];
+  paymentDataRequest.transactionInfo = getGoogleTransactionInfo();
+  paymentDataRequest.merchantInfo = {
+    // @todo a merchant ID is available for a production environment after approval by Google
+    // See {@link https://developers.google.com/pay/api/web/guides/test-and-deploy/integration-checklist|Integration checklist}
+    // merchantId: '01234567890123456789',
+    merchantName: 'Entradas'
+  };
+
+  paymentDataRequest.callbackIntents = ["PAYMENT_AUTHORIZATION"];
+
+  return paymentDataRequest;
+}
+
+/**
+ * Return an active PaymentsClient or initialize
+ *
+ * @see {@link https://developers.google.com/pay/api/web/reference/client#PaymentsClient|PaymentsClient constructor}
+ * @returns {google.payments.api.PaymentsClient} Google Pay API client
+ */
+function getGooglePaymentsClient() {
+  if ( paymentsClient === null ) {
+    paymentsClient = new google.payments.api.PaymentsClient({
+        environment: 'TEST',
+      paymentDataCallbacks: {
+        onPaymentAuthorized: onPaymentAuthorized
+      }
+    });
+  }
+  return paymentsClient;
+}
+
+/**
+ * Handles authorize payments callback intents.
+ *
+ * @param {object} paymentData response from Google Pay API after a payer approves payment through user gesture.
+ * @see {@link https://developers.google.com/pay/api/web/reference/response-objects#PaymentData object reference}
+ *
+ * @see {@link https://developers.google.com/pay/api/web/reference/response-objects#PaymentAuthorizationResult}
+ * @returns Promise<{object}> Promise of PaymentAuthorizationResult object to acknowledge the payment authorization status.
+ */
+        function operacionExitosa() {
+  return true;
+}
+function onPaymentAuthorized(paymentData) {
+  return new Promise(function(resolve, reject){
+    // handle the response
+    processPayment(paymentData)
+      .then(function() {
+        
+        resolve({transactionState: 'SUCCESS'});
+       window.parent.postMessage('MENSAJE EXITOSO', "*");
+      })
+      .catch(function() {
+        resolve({
+          transactionState: 'ERROR',
+          error: {
+            intent: 'PAYMENT_AUTHORIZATION',
+            message: 'Insufficient funds, try again. Next attempt should work.',
+            reason: 'PAYMENT_DATA_INVALID'
+          }
+        });
+	    });
+  });
+}
+
+/**
+ * Initialize Google PaymentsClient after Google-hosted JavaScript has loaded
+ *
+ * Display a Google Pay payment button after confirmation of the viewer's
+ * ability to pay.
+ */
+
+function onGooglePayLoaded() {
+  const paymentsClient = getGooglePaymentsClient();
+  paymentsClient.isReadyToPay(getGoogleIsReadyToPayRequest())
+    .then(function(response) {
+      if (response.result) {
+        addGooglePayButton();
+
+      }
+    })
+    .catch(function(err) {
+      // show error in developer console for debugging
+      console.error(err);
+    });
+}
+
+/**
+ * Add a Google Pay purchase button alongside an existing checkout button
+ *
+ * @see {@link https://developers.google.com/pay/api/web/reference/request-objects#ButtonOptions|Button options}
+ * @see {@link https://developers.google.com/pay/api/web/guides/brand-guidelines|Google Pay brand guidelines}
+ */
+function addGooglePayButton() {
+  const paymentsClient = getGooglePaymentsClient();
+  const container = document.getElementById('container');
+  const button =
+      paymentsClient.createButton({onClick: onGooglePaymentButtonClicked,buttonColor: 'black',
+  buttonType: 'buy',
+  buttonLocale: 'es',
+  buttonSizeMode: 'fill',});
+  document.getElementById('container').appendChild(button);
+}
+
+/**
+ * Provide Google Pay API with a payment amount, currency, and amount status
+ *
+ * @see {@link https://developers.google.com/pay/api/web/reference/request-objects#TransactionInfo|TransactionInfo}
+ * @returns {object} transaction info, suitable for use as transactionInfo property of PaymentDataRequest
+ */
+function getGoogleTransactionInfo() {
+  return {
+        displayItems: ${json.encode(displayItems)},
+    countryCode: 'CL',
+    currencyCode: "CLP",
+    totalPriceStatus: "FINAL",
+    totalPrice: "$_total",
+    totalPriceLabel: "Total"
+  };
+}
+
+
+/**
+ * Show Google Pay payment sheet when Google Pay payment button is clicked
+ */
+function onGooglePaymentButtonClicked() {
+  const paymentDataRequest = getGooglePaymentDataRequest();
+  paymentDataRequest.transactionInfo = getGoogleTransactionInfo();
+
+  const paymentsClient = getGooglePaymentsClient();
+  paymentsClient.loadPaymentData(paymentDataRequest);
+}
+
+let attempts = 0;
+/**
+ * Process payment data returned by the Google Pay API
+ *
+ * @param {object} paymentData response from Google Pay API after user approves payment
+ * @see {@link https://developers.google.com/pay/api/web/reference/response-objects#PaymentData|PaymentData object reference}
+ */
+function processPayment(paymentData) {
+  return new Promise(function(resolve, reject) {
+    setTimeout(function() {
+      // @todo pass payment token to your gateway to process payment
+      paymentToken = paymentData.paymentMethodData.tokenizationData.token;
+
+			if (attempts++ % 2 == 0) {
+	      reject(new Error('Every other attempt fails, next one should succeed'));      
+      } else {
+	      resolve({
+          
+        });      
+      }
+    }, 500);
+  });
+}
+    </script>
+
+  </body>
+</html>
+    ''',
+      initialSourceType: SourceType.html,
+      onWebViewCreated: (WebViewXController webviewController) async {
+        String success = await webviewController.evalRawJavascript(
+            "onPaymentAuthorized(paymentData)",
+            inGlobalContext: true);
+        if (success == 'SUCCESS') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Operación exitosa'),
+            ),
+          );
+        }
+      },
+      javascriptMode: JavascriptMode.unrestricted,
+    );
+  }
+
   /* ---------------------VISTA CARRITO--------------------------------- */
   int _total = 0;
 
@@ -969,7 +1334,7 @@ class _ShoppingUIState extends State<ShoppingUI> {
       }
       compra = listaCompras[index]['compra${index + 1}'];
       var cantidad = int.parse(compra['cantidad'] ?? '1');
-      var precioTotal = cantidad * precioUnitario;
+      var precioTotal = cantidad * int.parse(compra["precio"]);
       _total += precioTotal; // agregar el precio total al total
     });
     return Container(
@@ -977,522 +1342,272 @@ class _ShoppingUIState extends State<ShoppingUI> {
         borderRadius: BorderRadius.circular(20),
         color: colorScaffold,
       ),
-      child: dispositivo == "PC"
-          ? Row(
-              children: [
-                Column(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: colorNaranja,
+      child: Row(
+        children: [
+          Column(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: colorNaranja,
+                ),
+                width: MediaQuery.of(context).size.width / 2.5,
+                height: dispositivo == 'PC'
+                    ? MediaQuery.of(context).size.height * 0.72
+                    : MediaQuery.of(context).size.height * 0.85,
+                margin: EdgeInsets.only(bottom: 10),
+                child: Expanded(
+                  child: Column(
+                    children: [
+                      Text(
+                        "Tu orden",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold),
                       ),
-                      width: MediaQuery.of(context).size.width / 2.5,
-                      height: dispositivo == 'PC'
-                          ? MediaQuery.of(context).size.height * 0.72
-                          : MediaQuery.of(context).size.height * 0.85,
-                      margin: EdgeInsets.only(bottom: 10),
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            Text(
-                              "Tu orden",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            Expanded(
-                              child: listaCompras.isNotEmpty
-                                  ? ListView.builder(
-                                      shrinkWrap: true,
-                                      itemCount: listaCompras.length,
-                                      itemBuilder:
-                                          (BuildContext context, int index) {
-                                        final compra = listaCompras[index]
-                                            ['compra${index + 1}'];
-                                        if (compra == null || compra.isEmpty) {
-                                          return SizedBox();
-                                        }
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Expanded(
+                        child: listaCompras.isNotEmpty
+                            ? ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: listaCompras.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  final compra =
+                                      listaCompras[index]['compra${index + 1}'];
+                                  if (compra == null || compra.isEmpty) {
+                                    return SizedBox();
+                                  }
 
-                                        // Obtener la cantidad actual del artículo
-                                        final cantidad = int.parse(
-                                            compra['cantidad'] ?? '1');
+                                  // Obtener la cantidad actual del artículo
+                                  final cantidad =
+                                      int.parse(compra['cantidad'] ?? '1');
 
-                                        var precioTotal =
-                                            cantidad * precioUnitario;
+                                  var precioTotal =
+                                      cantidad * int.parse(compra['precio']);
+                                  /* 1 *100 = 100
+                                    2* 100 = 200
+                                    total = total + precio total
+                                      100      0      100
+                                      300         100   + 200
+                                                300        300
+                                      
+                                   */
 
-                                        return Column(
+                                  return Expanded(
+                                    child: Column(
+                                      children: [
+                                        SizedBox(
+                                          height: 5,
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
-                                            SizedBox(
-                                              height: 5,
+                                            Expanded(
+                                              child: Text(
+                                                compra!['eventoNombre'] ?? '',
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
                                             ),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    compra!['eventoNombre'] ??
-                                                        '',
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold),
+                                            SizedBox(
+                                              width: 120,
+                                              child: Text(
+                                                  DateFormat('dd/MM/yyyy')
+                                                      .format(
+                                                    compra['fecha']
+                                                            ?.toLocal() ??
+                                                        DateTime.now(),
                                                   ),
-                                                ),
-                                                SizedBox(
-                                                  width: 120,
-                                                  child: Text(
-                                                      DateFormat('dd/MM/yyyy')
-                                                          .format(
-                                                        compra['fecha']
-                                                                ?.toLocal() ??
-                                                            DateTime.now(),
-                                                      ),
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold)),
-                                                ),
-                                                Expanded(
-                                                  child: SizedBox(
-                                                    width: 100,
-                                                    child: Wrap(
-                                                      spacing: 10,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ),
+                                            Expanded(
+                                              child: SizedBox(
+                                                width: 100,
+                                                child: Wrap(
+                                                  spacing: 10,
+                                                  children: [
+                                                    Row(
                                                       children: [
-                                                        Row(
-                                                          children: [
-                                                            IconButton(
-                                                              icon: Icon(
-                                                                  Icons.remove),
-                                                              onPressed: () {
-                                                                setState(() {
-                                                                  if (cantidad >
-                                                                      1) {
-                                                                    listaCompras[index]
-                                                                            [
-                                                                            'compra${index + 1}']![
-                                                                        'cantidad'] = (cantidad -
-                                                                            1)
-                                                                        .toString();
-                                                                    _total -=
-                                                                        precioUnitario;
-                                                                    print(
-                                                                        listaCompras);
-                                                                  } else {
-                                                                    listaCompras[index]
-                                                                            [
-                                                                            'compra${index + 1}']![
-                                                                        'cantidad'] = '1';
-                                                                  }
-                                                                });
-                                                              },
-                                                            ),
-                                                            Text(
-                                                              '$cantidad',
-                                                              style: TextStyle(
-                                                                  fontSize: 18,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold),
-                                                            ),
-                                                            IconButton(
-                                                              icon: Icon(
-                                                                  Icons.add),
-                                                              onPressed: () {
-                                                                setState(() {
-                                                                  listaCompras[
-                                                                              index]
+                                                        IconButton(
+                                                          icon: Icon(
+                                                              Icons.remove),
+                                                          onPressed: () {
+                                                            setState(() {
+                                                              if (cantidad >
+                                                                  1) {
+                                                                listaCompras[
+                                                                            index]
+                                                                        [
+                                                                        'compra${index + 1}']![
+                                                                    'cantidad'] = (cantidad -
+                                                                        1)
+                                                                    .toString();
+                                                                _total -= int
+                                                                    .parse(compra[
+                                                                        'precio']);
+                                                                print(
+                                                                    listaCompras);
+                                                              } else {
+                                                                listaCompras[
+                                                                            index]
+                                                                        [
+                                                                        'compra${index + 1}']![
+                                                                    'cantidad'] = '1';
+                                                              }
+                                                            });
+                                                          },
+                                                        ),
+                                                        Text(
+                                                          '$cantidad',
+                                                          style: TextStyle(
+                                                              fontSize: 18,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
+                                                        IconButton(
+                                                          icon: Icon(Icons.add),
+                                                          onPressed: () {
+                                                            setState(() {
+                                                              listaCompras[index]
                                                                           [
                                                                           'compra${index + 1}']![
-                                                                      'cantidad'] = (cantidad +
-                                                                          1)
+                                                                      'cantidad'] =
+                                                                  (cantidad + 1)
                                                                       .toString();
-                                                                  _total +=
-                                                                      precioUnitario;
-                                                                  print(
-                                                                      listaCompras);
-                                                                });
-                                                              },
-                                                            ),
-                                                          ],
+                                                              _total += int
+                                                                  .parse(compra[
+                                                                      'precio']);
+                                                              print(
+                                                                  listaCompras);
+                                                            });
+                                                          },
                                                         ),
                                                       ],
                                                     ),
-                                                  ),
+                                                  ],
                                                 ),
-                                                Expanded(
-                                                  child: Text(
-                                                      '\$${precioTotal.toString()}',
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold)),
-                                                ),
-                                                IconButton(
-                                                  icon: Icon(Icons.delete),
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      listaCompras
-                                                          .removeAt(index);
-                                                    });
-                                                  },
-                                                ),
-                                              ],
+                                              ),
                                             ),
-                                            Divider(),
+                                            Expanded(
+                                              child: Text(
+                                                  '\$${precioTotal.toString()}',
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(Icons.delete),
+                                              onPressed: () {
+                                                setState(() {
+                                                  if (index ==
+                                                      listaCompras.length - 1) {
+                                                    listaCompras
+                                                        .removeAt(index);
+                                                  } else {
+                                                    // Actualiza los nombres de las compras
+                                                    for (int i = index + 1;
+                                                        i < listaCompras.length;
+                                                        i++) {
+                                                      listaCompras[i]
+                                                              ['compra${i}'] =
+                                                          listaCompras[i].remove(
+                                                              'compra${i + 1}');
+                                                    }
+                                                    listaCompras
+                                                        .removeAt(index);
+                                                  }
+                                                  print(listaCompras);
+                                                });
+                                              },
+                                            ),
                                           ],
-                                        );
-                                      })
-                                  : Center(
-                                      child: Text(
-                                        'No hay compras en tu carrito',
-                                        style: TextStyle(fontSize: 20),
-                                      ),
+                                        ),
+                                        Divider(),
+                                      ],
                                     ),
-                            ),
-                            Expanded(
-                              child: SizedBox(),
-                            ),
-                          ],
+                                  );
+                                })
+                            : Center(
+                                child: Text(
+                                  'No hay compras en tu carrito',
+                                  style: TextStyle(fontSize: 20),
+                                ),
+                              ),
+                      ),
+                      Expanded(
+                        child: SizedBox(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(
+            width: 5,
+          ),
+          Expanded(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: colorMorado,
+                ),
+                height: dispositivo == 'PC'
+                    ? MediaQuery.of(context).size.height / 2
+                    : MediaQuery.of(context).size.height * 0.85,
+                width: MediaQuery.of(context).size.height / 2,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Total: \$${_total.toString()}',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(
+                        width: MediaQuery.of(context).size.height / 2,
+                        child: gpayTest()),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.height / 2,
+                      child: ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(Colors.red),
                         ),
+                        onPressed: () {
+                          setState(() {
+                            listaCompras.clear();
+                            print(listaCompras);
+                          });
+                        },
+                        child: Text('Eliminar todo'),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(
-                  width: 5,
-                ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: colorMorado,
-                      ),
-                      height: dispositivo == 'PC'
-                          ? MediaQuery.of(context).size.height / 2
-                          : MediaQuery.of(context).size.height * 0.85,
-                      width: MediaQuery.of(context).size.height / 2,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Total: \$${_total.toString()}',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.height / 2,
-                            child: ElevatedButton(
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        colorNaranja),
-                              ),
-                              onPressed: () {
-                                // Lógica para ir a pagar
-                                dispararCheckout();
-                                print(_total);
-                                print(listaCompras);
-                              },
-                              child: Text('Ir a pagar'),
-                            ),
-                          ),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.height / 2,
-                            child: ElevatedButton(
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        Colors.red),
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  listaCompras.clear();
-                                  print(listaCompras);
-                                });
-                              },
-                              child: Text('Eliminar todo'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                )
-              ],
-            )
-          : Column(
-              children: [
-                Column(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: colorNaranja,
-                      ),
-                      width: MediaQuery.of(context).size.height / 2,
-                      height: dispositivo == 'PC'
-                          ? MediaQuery.of(context).size.height * 0.72
-                          : MediaQuery.of(context).size.height * 0.2,
-                      margin: EdgeInsets.only(bottom: 10),
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            Text(
-                              "Tu orden",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            Expanded(
-                              child: listaCompras.isNotEmpty
-                                  ? ListView.builder(
-                                      shrinkWrap: true,
-                                      itemCount: listaCompras.length,
-                                      itemBuilder:
-                                          (BuildContext context, int index) {
-                                        final compra = listaCompras[index]
-                                            ['compra${index + 1}'];
-                                        if (compra == null || compra.isEmpty) {
-                                          return SizedBox();
-                                        }
-
-                                        // Obtener la cantidad actual del artículo
-                                        final cantidad = int.parse(
-                                            compra['cantidad'] ?? '1');
-
-                                        var precioTotal =
-                                            cantidad * precioUnitario;
-
-                                        return Column(
-                                          children: [
-                                            SizedBox(
-                                              height: 5,
-                                            ),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    compra!['eventoNombre'] ??
-                                                        '',
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold),
-                                                  ),
-                                                ),
-                                                SizedBox(
-                                                  width: 120,
-                                                  child: Text(
-                                                      DateFormat('dd/MM/yyyy')
-                                                          .format(
-                                                        compra['fecha']
-                                                                ?.toLocal() ??
-                                                            DateTime.now(),
-                                                      ),
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold)),
-                                                ),
-                                                Expanded(
-                                                  child: SizedBox(
-                                                    width: 100,
-                                                    child: Wrap(
-                                                      spacing: 10,
-                                                      children: [
-                                                        Row(
-                                                          children: [
-                                                            IconButton(
-                                                              icon: Icon(
-                                                                  Icons.remove),
-                                                              onPressed: () {
-                                                                setState(() {
-                                                                  if (cantidad >
-                                                                      1) {
-                                                                    listaCompras[index]
-                                                                            [
-                                                                            'compra${index + 1}']![
-                                                                        'cantidad'] = (cantidad -
-                                                                            1)
-                                                                        .toString();
-                                                                    _total -=
-                                                                        precioUnitario;
-                                                                    print(
-                                                                        listaCompras);
-                                                                  } else {
-                                                                    listaCompras[index]
-                                                                            [
-                                                                            'compra${index + 1}']![
-                                                                        'cantidad'] = '1';
-                                                                  }
-                                                                });
-                                                              },
-                                                            ),
-                                                            Text(
-                                                              '$cantidad',
-                                                              style: TextStyle(
-                                                                  fontSize: 18,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold),
-                                                            ),
-                                                            IconButton(
-                                                              icon: Icon(
-                                                                  Icons.add),
-                                                              onPressed: () {
-                                                                setState(() {
-                                                                  listaCompras[
-                                                                              index]
-                                                                          [
-                                                                          'compra${index + 1}']![
-                                                                      'cantidad'] = (cantidad +
-                                                                          1)
-                                                                      .toString();
-                                                                  _total +=
-                                                                      precioUnitario;
-                                                                  print(
-                                                                      listaCompras);
-                                                                });
-                                                              },
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                                Expanded(
-                                                  child: Text(
-                                                      '\$${precioTotal.toString()}',
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold)),
-                                                ),
-                                                IconButton(
-                                                  icon: Icon(Icons.delete),
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      listaCompras
-                                                          .removeAt(index);
-                                                    });
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                            Divider(),
-                                          ],
-                                        );
-                                      })
-                                  : Center(
-                                      child: Text(
-                                        'No hay compras en tu carrito',
-                                        style: TextStyle(fontSize: 20),
-                                      ),
-                                    ),
-                            ),
-                            Expanded(
-                              child: SizedBox(),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  width: 5,
-                ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: colorMorado,
-                      ),
-                      height: dispositivo == 'PC'
-                          ? MediaQuery.of(context).size.height / 2
-                          : MediaQuery.of(context).size.height * 0.2,
-                      width: MediaQuery.of(context).size.height / 2,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Total: \$${_total.toString()}',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.height / 2,
-                            child: ElevatedButton(
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        colorNaranja),
-                              ),
-                              onPressed: () {
-                                // Lógica para ir a pagar
-                                print(_total);
-                                print(listaCompras);
-                              },
-                              child: Text('Ir a pagar'),
-                            ),
-                          ),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.height / 2,
-                            child: ElevatedButton(
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        Colors.red),
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  listaCompras.clear();
-                                  print(listaCompras);
-                                });
-                              },
-                              child: Text('Eliminar todo'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                )
-              ],
+              ),
             ),
+          )
+        ],
+      ),
     );
   }
 
