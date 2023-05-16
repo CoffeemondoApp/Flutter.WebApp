@@ -751,12 +751,6 @@ class _HeaderState extends State<Header> {
             SizedBox(
               height: 30,
             ),
-            btnSideBar('Carrito', Icons.shopping_cart),
-            usuarioLogeado
-                ? SizedBox(
-                    height: 30,
-                  )
-                : Container(),
             usuarioLogeado
                 ? btnSideBar('Servicios', Icons.graphic_eq)
                 : Container(),

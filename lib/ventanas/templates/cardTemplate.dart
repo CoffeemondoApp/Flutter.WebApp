@@ -26,6 +26,7 @@ class cardTemplate extends StatelessWidget {
     required this.dispositivo,
     required this.body,
     required this.icon,
+    required String building,
   }) : super(key: key);
 
 //title en este codigo hace referencia a la ubicacion mostrada en vista Eventos, o a las cafeterias mostradas en vistaReseñas
