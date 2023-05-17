@@ -207,6 +207,68 @@ class _EventosUIState extends State<EventosUI> {
 
   Map<DateTime, dynamic> cantidadesPorFecha = {};
 
+  Future<void> agregarAlCarrito() async {
+    var listaCompras = ListaComprasInheritedWidget.of(context).listaCompras;
+
+    if (fechasSeleccionadas.isNotEmpty &&
+        cantidadesPorFecha.values.any((cantidad) => cantidad > 0)) {
+      if (_formKey.currentState!.saveAndValidate()) {
+        setState(() {
+          // Cambiar el estado del botón a "en progreso"
+          _isLoading = true;
+        });
+
+        var formData = _formKey.currentState!.value;
+        var nuevaListaCompras = <Map<String, dynamic>>[];
+        cantidadesPorFecha.forEach((fecha, cantidad) {
+          var nuevaCompra = {
+            "id": uuid.v4(),
+            'fecha': fecha,
+            'eventoNombre': _eventoSeleccionado != null
+                ? _eventoSeleccionado!["nombre"]
+                : "",
+            'cantidad': cantidad.toString(),
+            'precio': _eventoSeleccionado != null
+                ? _eventoSeleccionado!["precio"].toString()
+                : "",
+          };
+          var nombreCompra = "compra$contadorCompras";
+          nuevaListaCompras.add({nombreCompra: nuevaCompra});
+          cantidadCompras++;
+          contadorCompras++;
+        });
+
+        // Agregar las nuevas compras a la lista de compras existente
+        listaCompras.addAll(nuevaListaCompras);
+
+        fechasSeleccionadas = [];
+        cantidadesSeleccionadas = [];
+        cantidadesPorFecha = {};
+
+        if (listaCompras.isEmpty) {
+          nuevaListaCompras.clear();
+        }
+
+        await Future.delayed(Duration(seconds: 1));
+
+        setState(() {
+          // Cambiar el estado del botón de vuelta a "normal"
+          _isLoading = false;
+          mostrarGridImagenes = true;
+          mostrarFormulario = false;
+          Navigator.pop(context); // Cerrar el Dialog
+          print(listaCompras);
+        });
+      } else {
+        setState(() {
+          autoValidate = true;
+        });
+      }
+    } else {}
+  }
+
+  bool hoverBtnAddCarrito = false;
+
   Widget entradaFormulario(Function setState) {
     var listaCompras = ListaComprasInheritedWidget.of(context).listaCompras;
     //Dividimos la cadena de fechas en dos fechas separadas
@@ -233,7 +295,7 @@ class _EventosUIState extends State<EventosUI> {
 
     return Dialog(
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.6,
+        width: 1400,
         height: MediaQuery.of(context).size.height * 0.75,
         child: Scaffold(
           body: Builder(builder: (BuildContext context) {
@@ -250,395 +312,305 @@ class _EventosUIState extends State<EventosUI> {
                             ? AutovalidateMode.always
                             : AutovalidateMode.disabled,
                         child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             dispositivo == "PC"
-                                ? Expanded(
-                                    child: ClipPath(
-                                      child: ImageNetwork(
-                                        image: _eventoSeleccionado!["imagen"],
-                                        height:
-                                            MediaQuery.of(context).size.width *
-                                                0.4,
-                                        width:
-                                            MediaQuery.of(context).size.height,
-                                        fitWeb: BoxFitWeb.fill,
-                                      ),
+                                ? ClipPath(
+                                    child: ImageNetwork(
+                                      image: _eventoSeleccionado!["imagen"],
+                                      height: 760,
+                                      width: 850,
+                                      fitWeb: BoxFitWeb.fill,
                                     ),
                                   )
                                 : Container(),
-                            SizedBox(
-                              width: 50,
-                            ),
-                            Expanded(
-                              child: Container(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      height: 20,
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          _eventoSeleccionado!["nombre"],
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: colorMorado,
-                                              fontSize: 25),
-                                        ),
-                                      ],
-                                    ),
-                                    Container(
-                                      height: 60,
-                                    ),
-                                    Text(_eventoSeleccionado!["descripcion"]),
-                                    Container(
-                                      height: 10,
-                                    ),
-                                    Divider(
-                                      color: colorNaranja,
-                                      thickness: 1,
-                                    ),
-                                    Container(
-                                      height: 50,
-                                    ),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.date_range,
-                                          color: colorMorado,
-                                          size: 25,
-                                        ),
-                                        SizedBox(width: 5),
-                                        Text(
-                                          "Fechas Disponibles",
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: colorMorado,
-                                              fontSize: 25),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 20),
-                                    Expanded(
-                                        flex: 100,
-                                        child: Wrap(
-                                          children: todasLasFechas.map((fecha) {
-                                            String fechaString =
-                                                DateFormat('dd/MMM/yyyy')
-                                                    .format(fecha);
-                                            return Container(
-                                              margin: EdgeInsets.all(5),
-                                              child: FilterChip(
-                                                  label: Text(fechaString),
-                                                  labelStyle: TextStyle(
-                                                      color: Colors.white),
-                                                  backgroundColor: colorNaranja,
-                                                  checkmarkColor: colorNaranja,
-                                                  selectedColor: colorMorado,
-                                                  selected: fechasSeleccionadas
-                                                      .contains(fecha),
-                                                  onSelected: (bool selected) {
-                                                    setState(() {
-                                                      if (selected) {
-                                                        fechasSeleccionadas = [
-                                                          ...fechasSeleccionadas,
-                                                          fecha
-                                                        ];
-                                                      } else {
-                                                        fechasSeleccionadas =
-                                                            fechasSeleccionadas
-                                                                .where((f) =>
-                                                                    f != fecha)
-                                                                .toList();
-                                                      }
-                                                    });
-                                                  }),
-                                            );
-                                          }).toList(),
-                                        )),
-                                    Divider(
-                                      color: colorNaranja,
-                                      thickness: 1,
-                                    ),
-                                    SizedBox(
-                                      height: 20,
-                                    ),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.confirmation_num_rounded,
-                                          color: colorMorado,
-                                          size: 35,
-                                        ),
-                                        SizedBox(width: 5),
-                                        Text(
-                                          "Seleccione la cantidad de entradas",
-                                          style: TextStyle(
+                            Container(
+                              margin: EdgeInsets.only(right: 20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    height: 20,
+                                  ),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.event,
+                                        color: colorMorado,
+                                        size: 25,
+                                      ),
+                                      SizedBox(width: 15),
+                                      Text(
+                                        _eventoSeleccionado!["nombre"],
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: colorMorado,
-                                            fontSize: 25,
-                                          ),
-                                          maxLines: 2,
-                                          softWrap: true,
+                                            fontSize: 25),
+                                      ),
+                                    ],
+                                  ),
+                                  Container(
+                                      margin:
+                                          EdgeInsets.symmetric(vertical: 20),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        color: colorMorado,
+                                      ),
+                                      width: 500,
+                                      child: Container(
+                                        margin: EdgeInsets.symmetric(
+                                            vertical: 10, horizontal: 20),
+                                        child: Text(
+                                          _eventoSeleccionado!["descripcion"],
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: colorNaranja,
+                                              fontSize: 18),
                                         ),
-                                      ],
+                                      )),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.date_range,
+                                        color: colorMorado,
+                                        size: 25,
+                                      ),
+                                      SizedBox(width: 15),
+                                      Text(
+                                        "Fechas Disponibles",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: colorMorado,
+                                            fontSize: 25),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 20),
+                                  Container(
+                                      width: 400,
+                                      child: Wrap(
+                                        children: todasLasFechas.map((fecha) {
+                                          String fechaString =
+                                              DateFormat('dd/MMM/yyyy')
+                                                  .format(fecha);
+                                          return Container(
+                                            margin: EdgeInsets.all(5),
+                                            child: FilterChip(
+                                                label: Text(fechaString),
+                                                labelStyle: TextStyle(
+                                                    color: fechasSeleccionadas
+                                                            .contains(fecha)
+                                                        ? colorNaranja
+                                                        : colorMorado,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 18),
+                                                backgroundColor: colorNaranja,
+                                                checkmarkColor: colorNaranja,
+                                                selectedColor: colorMorado,
+                                                selected: fechasSeleccionadas
+                                                    .contains(fecha),
+                                                onSelected: (bool selected) {
+                                                  setState(() {
+                                                    if (selected) {
+                                                      fechasSeleccionadas = [
+                                                        ...fechasSeleccionadas,
+                                                        fecha
+                                                      ];
+                                                    } else {
+                                                      fechasSeleccionadas =
+                                                          fechasSeleccionadas
+                                                              .where((f) =>
+                                                                  f != fecha)
+                                                              .toList();
+                                                    }
+                                                  });
+                                                }),
+                                          );
+                                        }).toList(),
+                                      )),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.confirmation_num_rounded,
+                                        color: colorMorado,
+                                        size: 35,
+                                      ),
+                                      SizedBox(width: 15),
+                                      Text(
+                                        "Seleccione la cantidad de entradas",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: colorMorado,
+                                          fontSize: 25,
+                                        ),
+                                        maxLines: 2,
+                                        softWrap: true,
+                                      ),
+                                    ],
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
+                                      //color: colorMorado,
                                     ),
-                                    Expanded(
-                                      flex: 150,
+                                    margin: EdgeInsets.only(top: 10),
+                                    height: MediaQuery.of(context) //Ajustar
+                                            .size
+                                            .height *
+                                        0.28,
+                                    child: Container(
+                                      margin:
+                                          EdgeInsets.symmetric(vertical: 10),
                                       child: SingleChildScrollView(
-                                        child: Wrap(
-                                          spacing: 8,
-                                          runSpacing: 8,
+                                        child: Column(
                                           children:
                                               fechasSeleccionadas.map((fecha) {
                                             final index =
                                                 todasLasFechas.indexOf(fecha);
                                             final cantidad =
                                                 cantidadesPorFecha[fecha] ?? 0;
-                                            return Wrap(
-                                              crossAxisAlignment:
-                                                  WrapCrossAlignment.center,
-                                              children: [
-                                                Chip(
-                                                  label: Text(
-                                                    DateFormat('dd/MMM/yyyy')
-                                                        .format(fecha),
-                                                  ),
-                                                  backgroundColor: colorNaranja,
-                                                  labelStyle: TextStyle(
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                                SizedBox(width: 8),
-                                                IconButton(
-                                                  onPressed: cantidad == 0
-                                                      ? null
-                                                      : () {
-                                                          setState(() {
-                                                            cantidadesPorFecha[
-                                                                    fecha] =
-                                                                cantidad - 1;
-                                                          });
-                                                        },
-                                                  icon: Icon(Icons.remove),
-                                                  color: colorMorado,
-                                                ),
-                                                SizedBox(
-                                                  width: 20,
-                                                  child: TextField(
-                                                    textAlign: TextAlign.center,
-                                                    keyboardType:
-                                                        TextInputType.number,
-                                                    inputFormatters: [
-                                                      FilteringTextInputFormatter
-                                                          .digitsOnly
-                                                    ],
-                                                    decoration: InputDecoration(
-                                                      contentPadding:
-                                                          EdgeInsets.zero,
-                                                      isDense: true,
-                                                      border: InputBorder
-                                                          .none, // Agregar esta línea
+                                            return Container(
+                                              width: 500,
+                                              margin:
+                                                  EdgeInsets.only(bottom: 10),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                color: colorMorado,
+                                              ),
+                                              child: Container(
+                                                margin: EdgeInsets.symmetric(
+                                                    vertical: 10,
+                                                    horizontal: 20),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween, //Ajustar
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        IconButton(
+                                                            onPressed: () {
+                                                              setState(() {
+                                                                if (cantidad >
+                                                                    0) {
+                                                                  cantidadesPorFecha[
+                                                                          fecha] =
+                                                                      cantidad -
+                                                                          1;
+                                                                }
+                                                              });
+                                                            },
+                                                            icon: Icon(
+                                                              Icons.remove,
+                                                              color:
+                                                                  colorNaranja,
+                                                            )),
+                                                        Text(
+                                                          cantidad.toString(),
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color:
+                                                                  colorNaranja,
+                                                              fontSize: 18),
+                                                        ),
+                                                        IconButton(
+                                                            onPressed: () {
+                                                              setState(() {
+                                                                cantidadesPorFecha[
+                                                                        fecha] =
+                                                                    cantidad +
+                                                                        1;
+                                                              });
+                                                            },
+                                                            icon: Icon(
+                                                              Icons.add,
+                                                              color:
+                                                                  colorNaranja,
+                                                            )),
+                                                      ],
                                                     ),
-                                                    onChanged: (value) {
-                                                      setState(() {
-                                                        cantidadesPorFecha[
-                                                                fecha] =
-                                                            int.tryParse(
-                                                                    value) ??
-                                                                0;
-                                                      });
-                                                    },
-                                                    controller:
-                                                        TextEditingController(
-                                                            text: cantidad
-                                                                .toString()),
-                                                  ),
+                                                    Text(
+                                                      DateFormat('dd/MMM/yyyy')
+                                                          .format(fecha),
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: colorNaranja,
+                                                          fontSize: 18),
+                                                    ),
+                                                  ],
                                                 ),
-                                                SizedBox(width: 8),
-                                                IconButton(
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      print(listaCompras);
-                                                      cantidadesPorFecha[
-                                                          fecha] = cantidad + 1;
-                                                    });
-                                                  },
-                                                  icon: Icon(Icons.add),
-                                                  color: colorMorado,
-                                                ),
-                                              ],
+                                              ),
                                             );
                                           }).toList(),
                                         ),
                                       ),
                                     ),
-                                    Center(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Builder(builder: (context) {
-                                                return Center(
-                                                  child: Expanded(
-                                                    child: ElevatedButton(
-                                                      style: ElevatedButton
-                                                          .styleFrom(
-                                                        fixedSize: Size(
-                                                            dispositivo == "PC"
-                                                                ? MediaQuery.of(context)
-                                                                            .size
-                                                                            .width /
-                                                                        3.5 -
-                                                                    20
-                                                                : MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width -
-                                                                    200,
-                                                            50),
-                                                        backgroundColor:
-                                                            colorMorado,
-                                                        foregroundColor:
-                                                            colorNaranja,
-                                                      ),
-                                                      onPressed: () async {
-                                                        if (fechasSeleccionadas
-                                                                .isNotEmpty &&
-                                                            cantidadesPorFecha
-                                                                .values
-                                                                .any((cantidad) =>
-                                                                    cantidad >
-                                                                    0)) {
-                                                          if (_formKey
-                                                              .currentState!
-                                                              .saveAndValidate()) {
-                                                            setState(() {
-                                                              // Cambiar el estado del botón a "en progreso"
-                                                              _isLoading = true;
-                                                            });
-
-                                                            var formData =
-                                                                _formKey
-                                                                    .currentState!
-                                                                    .value;
-                                                            var nuevaListaCompras = <
-                                                                Map<String,
-                                                                    dynamic>>[];
-                                                            cantidadesPorFecha
-                                                                .forEach((fecha,
-                                                                    cantidad) {
-                                                              var nuevaCompra =
-                                                                  {
-                                                                "id": uuid.v4(),
-                                                                'fecha': fecha,
-                                                                'eventoNombre':
-                                                                    _eventoSeleccionado !=
-                                                                            null
-                                                                        ? _eventoSeleccionado![
-                                                                            "nombre"]
-                                                                        : "",
-                                                                'cantidad': cantidad
-                                                                    .toString(),
-                                                                'precio': _eventoSeleccionado !=
-                                                                        null
-                                                                    ? _eventoSeleccionado![
-                                                                            "precio"]
-                                                                        .toString()
-                                                                    : "",
-                                                              };
-                                                              var nombreCompra =
-                                                                  "compra$contadorCompras";
-                                                              nuevaListaCompras
-                                                                  .add({
-                                                                nombreCompra:
-                                                                    nuevaCompra
-                                                              });
-                                                              cantidadCompras++;
-                                                              contadorCompras++;
-                                                            });
-
-                                                            // Agregar las nuevas compras a la lista de compras existente
-                                                            listaCompras.addAll(
-                                                                nuevaListaCompras);
-
-                                                            fechasSeleccionadas =
-                                                                [];
-                                                            cantidadesSeleccionadas =
-                                                                [];
-                                                            cantidadesPorFecha =
-                                                                {};
-
-                                                            if (listaCompras
-                                                                .isEmpty) {
-                                                              nuevaListaCompras
-                                                                  .clear();
-                                                            }
-
-                                                            await Future
-                                                                .delayed(
-                                                                    Duration(
-                                                                        seconds:
-                                                                            1));
-
-                                                            setState(() {
-                                                              // Cambiar el estado del botón de vuelta a "normal"
-                                                              _isLoading =
-                                                                  false;
-                                                              mostrarGridImagenes =
-                                                                  true;
-                                                              mostrarFormulario =
-                                                                  false;
-                                                              Navigator.pop(
-                                                                  context); // Cerrar el Dialog
-                                                              print(
-                                                                  listaCompras);
-                                                            });
-                                                          } else {
-                                                            setState(() {
-                                                              autoValidate =
-                                                                  true;
-                                                            });
-                                                          }
-                                                        } else {}
-                                                      },
-                                                      child: _isLoading
-                                                          ? LinearProgressIndicator(
-                                                              backgroundColor:
-                                                                  colorNaranja,
-                                                              valueColor:
-                                                                  AlwaysStoppedAnimation<
-                                                                          Color>(
-                                                                      Colors
-                                                                          .white),
-                                                            )
-                                                          : Text(
-                                                              'Agregar al carrito',
-                                                              style: TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold),
-                                                            ),
-                                                    ),
-                                                  ),
-                                                );
-                                              }),
-                                              SizedBox(
-                                                width: 20,
-                                              ),
-                                            ],
+                                  ),
+                                  Expanded(child: Container()),
+                                  Container(
+                                    margin: EdgeInsets.symmetric(vertical: 10),
+                                    child: InkWell(
+                                        onTap: () async {
+                                          await agregarAlCarrito();
+                                        },
+                                        onHover: (value) {
+                                          setState(() {
+                                            hoverBtnAddCarrito = value;
+                                          });
+                                        },
+                                        child: AnimatedContainer(
+                                          duration: Duration(milliseconds: 200),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            color: hoverBtnAddCarrito
+                                                ? colorMorado
+                                                : colorNaranja,
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                          child: _isLoading
+                                              ? LinearProgressIndicator(
+                                                  backgroundColor: colorNaranja,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                          Color>(Colors.white),
+                                                )
+                                              : Container(
+                                                  margin: EdgeInsets.symmetric(
+                                                      vertical: 10,
+                                                      horizontal:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .width *
+                                                              0.06),
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.add_shopping_cart,
+                                                        color:
+                                                            hoverBtnAddCarrito
+                                                                ? colorNaranja
+                                                                : colorMorado,
+                                                      ),
+                                                      Text(
+                                                        'Agregar al carrito',
+                                                        style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: hoverBtnAddCarrito
+                                                                ? colorNaranja
+                                                                : colorMorado),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                        )),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -657,14 +629,185 @@ class _EventosUIState extends State<EventosUI> {
 
   bool _terminosYCondiciones = false;
   bool _politicaDePrivacidad = false;
+  bool ingresarInfoManual = false;
   String? _cuponDescuento;
+
+  bool hoverBtnSeguirComprando = false;
+  bool hoverBtnConfirmarDatos = false;
+
+  Widget btnSeguirComprando() {
+    return (InkWell(
+      onTap: () {
+        setState(() {
+          mostrarDatosUsuario = false;
+          mostrarGridImagenes = true;
+        });
+      },
+      onHover: (value) {
+        setState(() {
+          hoverBtnSeguirComprando = value;
+        });
+      },
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 200),
+        curve: Curves.easeInCubic,
+        width: 260,
+        height: 40,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: hoverBtnSeguirComprando ? colorMorado : colorNaranja,
+        ),
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Icon(
+                Icons.arrow_back,
+                color: hoverBtnSeguirComprando ? colorNaranja : colorMorado,
+              ),
+              Text(
+                'Seguir comprando',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color:
+                        hoverBtnSeguirComprando ? colorNaranja : colorMorado),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ));
+  }
+
+  Widget btnConfirmarDatos() {
+    var listaCompras = ListaComprasInheritedWidget.of(context).listaCompras;
+
+    return (InkWell(
+      onHover: (value) {
+        setState(() {
+          hoverBtnConfirmarDatos = value;
+        });
+      },
+      onTap: () {
+        _formKey.currentState?.save();
+        if (_formKey.currentState?.validate() == true) {
+          var nombre = _formKey.currentState?.fields['nombre']?.value;
+          var apellido = _formKey.currentState?.fields['apellido']?.value;
+          var rut = _formKey.currentState?.fields['rut']?.value;
+          var direccion = _formKey.currentState?.fields['direccion']?.value;
+          var telefono = _formKey.currentState?.fields['telefono']?.value;
+
+          for (var compra in listaCompras) {
+            compra.values.first['nombre'] = nombre;
+            compra.values.first['apellido'] = apellido;
+            compra.values.first['rut'] = rut;
+            compra.values.first['direccion'] = direccion;
+            compra.values.first['telefono'] = telefono;
+          }
+          print(listaCompras);
+
+          String mensaje =
+              datosConfirmados ? 'Datos actualizados' : 'Datos confirmados';
+          ArtSweetAlert.show(
+              context: context,
+              artDialogArgs: ArtDialogArgs(
+                type: ArtSweetAlertType.success,
+                title: mensaje,
+              ));
+          setState(() {
+            datosConfirmados = true;
+          });
+          // Aquí iría el código para continuar con la compra
+        } else {}
+      },
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 200),
+        curve: Curves.easeInCubic,
+        width: 260,
+        height: 40,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: hoverBtnConfirmarDatos ? colorNaranja : colorMorado,
+        ),
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Icon(
+                Icons.check,
+                color: hoverBtnConfirmarDatos ? colorMorado : colorNaranja,
+              ),
+              Text(formFilled ? 'Actualizar datos' : 'Confirmar datos',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color:
+                          hoverBtnConfirmarDatos ? colorMorado : colorNaranja)),
+            ],
+          ),
+        ),
+      ),
+    ));
+  }
+
+  Widget btnMercadoPago() {
+    return (Container(
+      width: 900,
+      decoration: BoxDecoration(
+          color: Colors.white, borderRadius: BorderRadius.circular(2)),
+      margin: EdgeInsets.symmetric(vertical: 10),
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: 5),
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Container(
+            margin: EdgeInsets.only(right: 25),
+            child: Text(
+              'Comprar con ',
+              style: TextStyle(
+                  color: Color.fromARGB(255, 0, 191, 255),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w300,
+                  fontFamily: 'Tahoma Normal'),
+            ),
+          ),
+          Image.asset(
+            'mercadopago.png',
+            width: 35,
+          ),
+        ]),
+      ),
+    ));
+  }
 
   Widget datosUsuario() {
     var listaCompras = ListaComprasInheritedWidget.of(context).listaCompras;
+    InputDecoration decoracionInputs(String label) {
+      return InputDecoration(
+          labelStyle: TextStyle(color: colorMorado),
+          labelText: label,
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: colorMorado,
+            ),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          border: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: colorMorado,
+            ),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: colorMorado,
+            ),
+            borderRadius: BorderRadius.circular(20),
+          ));
+    }
+
     return Scaffold(
       backgroundColor: colorScaffold,
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
@@ -687,19 +830,102 @@ class _EventosUIState extends State<EventosUI> {
                                       MainAxisAlignment.spaceEvenly,
                                   children: [
                                     Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        InkWell(
+                                          onTap: () {},
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.black,
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                            child: Container(
+                                              margin: EdgeInsets.symmetric(
+                                                  vertical: 5, horizontal: 30),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceEvenly,
+                                                children: [
+                                                  Icon(
+                                                    Icons.draw,
+                                                    color: colorNaranja,
+                                                    size: 30,
+                                                  ),
+                                                  Container(
+                                                    child: Text(
+                                                      'Ingresar la informacion',
+                                                      style: TextStyle(
+                                                          color: colorNaranja,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Switch(
+                                            activeColor: colorMorado,
+                                            focusColor: colorNaranja,
+                                            thumbColor: MaterialStateProperty
+                                                .all<Color>(colorMorado),
+                                            trackColor: MaterialStateProperty
+                                                .all<Color>(colorMorado),
+                                            value: ingresarInfoManual,
+                                            onChanged: (value) {
+                                              setState(() {
+                                                ingresarInfoManual = value;
+                                              });
+                                            }),
+                                        InkWell(
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: colorNaranja,
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                            child: Container(
+                                              margin: EdgeInsets.symmetric(
+                                                  vertical: 5, horizontal: 30),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Image.asset(
+                                                    'logo.png',
+                                                    width: 30,
+                                                  ),
+                                                  Container(
+                                                    child: Text(
+                                                      'Usar datos de la app',
+                                                      style: TextStyle(
+                                                          color: colorMorado,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                    Row(
                                       children: [
                                         Expanded(
                                           child: FormBuilderTextField(
-                                            name: 'nombre',
-                                            decoration: InputDecoration(
-                                              labelText: 'Nombre',
-                                              focusedBorder:
-                                                  UnderlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: colorMorado,
-                                                ),
-                                              ),
+                                            style: TextStyle(
+                                              color: colorMorado,
                                             ),
+                                            name: 'nombre',
+                                            decoration:
+                                                decoracionInputs('Nombre'),
                                             validator:
                                                 FormBuilderValidators.compose(
                                               [
@@ -714,16 +940,12 @@ class _EventosUIState extends State<EventosUI> {
                                         SizedBox(width: 20),
                                         Expanded(
                                           child: FormBuilderTextField(
-                                            name: 'apellido',
-                                            decoration: InputDecoration(
-                                              labelText: 'Apellido',
-                                              focusedBorder:
-                                                  UnderlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: colorMorado,
-                                                ),
-                                              ),
+                                            style: TextStyle(
+                                              color: colorMorado,
                                             ),
+                                            name: 'apellido',
+                                            decoration:
+                                                decoracionInputs('Apellido'),
                                             validator:
                                                 FormBuilderValidators.compose(
                                               [
@@ -741,16 +963,11 @@ class _EventosUIState extends State<EventosUI> {
                                       children: [
                                         Expanded(
                                           child: FormBuilderTextField(
-                                            name: 'rut',
-                                            decoration: InputDecoration(
-                                              labelText: 'RUT',
-                                              focusedBorder:
-                                                  UnderlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: colorMorado,
-                                                ),
-                                              ),
+                                            style: TextStyle(
+                                              color: colorMorado,
                                             ),
+                                            name: 'rut',
+                                            decoration: decoracionInputs('Rut'),
                                             validator:
                                                 FormBuilderValidators.compose(
                                               [
@@ -766,15 +983,11 @@ class _EventosUIState extends State<EventosUI> {
                                         Expanded(
                                           child: FormBuilderTextField(
                                             name: 'teléfono',
-                                            decoration: InputDecoration(
-                                              labelText: 'Teléfono',
-                                              focusedBorder:
-                                                  UnderlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: colorMorado,
-                                                ),
-                                              ),
+                                            style: TextStyle(
+                                              color: colorMorado,
                                             ),
+                                            decoration:
+                                                decoracionInputs('Teléfono'),
                                             validator:
                                                 FormBuilderValidators.compose(
                                               [
@@ -791,14 +1004,11 @@ class _EventosUIState extends State<EventosUI> {
                                     Center(
                                       child: FormBuilderTextField(
                                         name: 'dirección',
-                                        decoration: InputDecoration(
-                                          labelText: 'Dirección',
-                                          focusedBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(
-                                              color: colorMorado,
-                                            ),
-                                          ),
+                                        style: TextStyle(
+                                          color: colorMorado,
                                         ),
+                                        decoration:
+                                            decoracionInputs('Dirección'),
                                         validator:
                                             FormBuilderValidators.compose(
                                           [
@@ -810,97 +1020,13 @@ class _EventosUIState extends State<EventosUI> {
                                         ),
                                       ),
                                     ),
-                                    SizedBox(height: 20),
+                                    SizedBox(height: 10),
                                     Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: colorMorado,
-                                            foregroundColor: colorNaranja,
-                                          ),
-                                          onPressed: () {
-                                            _formKey.currentState?.save();
-                                            if (_formKey.currentState
-                                                    ?.validate() ==
-                                                true) {
-                                              var nombre = _formKey.currentState
-                                                  ?.fields['nombre']?.value;
-                                              var apellido = _formKey
-                                                  .currentState
-                                                  ?.fields['apellido']
-                                                  ?.value;
-                                              var rut = _formKey.currentState
-                                                  ?.fields['rut']?.value;
-                                              var direccion = _formKey
-                                                  .currentState
-                                                  ?.fields['direccion']
-                                                  ?.value;
-                                              var telefono = _formKey
-                                                  .currentState
-                                                  ?.fields['telefono']
-                                                  ?.value;
-
-                                              for (var compra in listaCompras) {
-                                                compra.values.first['nombre'] =
-                                                    nombre;
-                                                compra.values
-                                                        .first['apellido'] =
-                                                    apellido;
-                                                compra.values.first['rut'] =
-                                                    rut;
-                                                compra.values
-                                                        .first['direccion'] =
-                                                    direccion;
-                                                compra.values
-                                                        .first['telefono'] =
-                                                    telefono;
-                                              }
-                                              print(listaCompras);
-
-                                              String mensaje = datosConfirmados
-                                                  ? 'Datos actualizados'
-                                                  : 'Datos confirmados';
-                                              ArtSweetAlert.show(
-                                                  context: context,
-                                                  artDialogArgs: ArtDialogArgs(
-                                                    type: ArtSweetAlertType
-                                                        .success,
-                                                    title: mensaje,
-                                                  ));
-                                              setState(() {
-                                                datosConfirmados = true;
-                                              });
-                                              // Aquí iría el código para continuar con la compra
-                                            } else {}
-                                          },
-                                          child: Text(
-                                            formFilled
-                                                ? 'Actualizar datos'
-                                                : 'Confirmar datos',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(width: 20),
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: colorMorado,
-                                            foregroundColor: colorNaranja,
-                                          ),
-                                          onPressed: () {
-                                            setState(() {
-                                              mostrarDatosUsuario = false;
-                                              mostrarGridImagenes = true;
-                                            });
-                                          },
-                                          child: Text(
-                                            'Seguir comprando',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
+                                        btnConfirmarDatos(),
+                                        btnSeguirComprando(),
                                       ],
                                     ),
                                   ],
@@ -1047,12 +1173,6 @@ class _EventosUIState extends State<EventosUI> {
                                                 borderSide: BorderSide(
                                                     color: Colors.orange),
                                               ),
-                                              labelText:
-                                                  'Introduce tu cupón de descuento',
-                                              labelStyle: TextStyle(
-                                                  color: Colors.white),
-                                              hintStyle: TextStyle(
-                                                  color: Colors.white),
                                               suffixIcon: Icon(
                                                 Icons.local_offer,
                                                 color: Colors.white,
@@ -1069,17 +1189,21 @@ class _EventosUIState extends State<EventosUI> {
                                           ),
                                         ),
                                         SizedBox(width: 10),
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            // TODO: Aplicar el cupón de descuento
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: colorNaranja,
-                                            foregroundColor: Colors.white,
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: colorNaranja,
+                                            borderRadius:
+                                                BorderRadius.circular(5),
                                           ),
-                                          child: Text(
+                                          width: 200,
+                                          height: 50,
+                                          child: Center(
+                                              child: Text(
                                             'Aplicar',
-                                          ),
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold),
+                                          )),
                                         ),
                                       ],
                                     ),
@@ -1121,6 +1245,8 @@ class _EventosUIState extends State<EventosUI> {
                                         Row(
                                           children: [
                                             Checkbox(
+                                              activeColor: colorNaranja,
+                                              checkColor: colorMorado,
                                               value: _terminosYCondiciones,
                                               onChanged: (value) {
                                                 setState(() {
@@ -1141,6 +1267,8 @@ class _EventosUIState extends State<EventosUI> {
                                         Row(
                                           children: [
                                             Checkbox(
+                                              activeColor: colorNaranja,
+                                              checkColor: colorMorado,
                                               value: _politicaDePrivacidad,
                                               onChanged: (value) {
                                                 setState(() {
@@ -1158,11 +1286,10 @@ class _EventosUIState extends State<EventosUI> {
                                           ],
                                         ),
                                         SizedBox(height: 20),
-                                        Stack(children: [
-                                          Container(
-                                            child: gpayTest(),
-                                          ),
-                                        ])
+                                        btnMercadoPago(),
+                                        Container(
+                                          child: gpayTest(),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -1686,11 +1813,10 @@ class _EventosUIState extends State<EventosUI> {
                                               ],
                                             ),
                                             SizedBox(height: 20),
-                                            Stack(children: [
-                                              Container(
-                                                child: gpayTest(),
-                                              ),
-                                            ])
+                                            btnMercadoPago(),
+                                            Container(
+                                              child: gpayTest(),
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -2289,7 +2415,7 @@ function onPaymentAuthorized(paymentData) {
       .then(function() {
         resolve({transactionState: 'SUCCESS'});
      window.parent.postMessage('MENSAJE EXITOSO', "*");
-        console.log(paymentData)
+        console.log(JSON.stringify(paymentData));
       })
       .catch(function() {
         resolve({
