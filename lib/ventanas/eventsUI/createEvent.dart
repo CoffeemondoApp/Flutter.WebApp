@@ -148,11 +148,15 @@ class _crearEventoUIState extends State<crearEventoUI> {
       Iterable.generate(length, (idx) => chars[random.nextInt(chars.length)])
           .join();
 
-  List<String> constructorTickets(int cantEntradas, int dias) {
+  Map<String, List> constructorTickets(int cantEntradas, int dias) {
     //generar strings random que solo contengan numeros y letras mayusculas y minusculas y que no se repitan
-    List<String> tickets = [];
-    for (var i = 0; i < cantEntradas * dias; i++) {
-      tickets.add(generateRandomString(chars, 20));
+    Map<String, List> tickets = {};
+    for (var i = 0; i < dias; i++) {
+      List<String> ticketsDia = [];
+      for (var j = 0; j < cantEntradas; j++) {
+        ticketsDia.add(generateRandomString(chars, 20));
+      }
+      tickets[i.toString()] = ticketsDia;
     }
     return tickets;
   }
@@ -275,7 +279,7 @@ class _crearEventoUIState extends State<crearEventoUI> {
           }); //se agrega el nombre y el id de la cafeteria a la lista
         });
         listaCafeterias.add(DropdownMenuItem(
-          value: doc.id,
+          value: {'id': doc.id, 'nombre': doc['nombre']},
           child: Text(doc['nombre']),
         ));
       });
@@ -294,6 +298,8 @@ class _crearEventoUIState extends State<crearEventoUI> {
     }
     return ubicacion;
   }
+
+  Map<String, String> cafeteriaSeleccionada = {};
 
   Widget textFieldSelectCafeteria(TextEditingController controller) {
     return (Container(
@@ -345,7 +351,7 @@ class _crearEventoUIState extends State<crearEventoUI> {
               : (value) {
                   //poner en el controller de ubicacion el nombre de la cafeteria
                   setState(() {
-                    controller.text = value.toString();
+                    cafeteriaSeleccionada = value as Map<String, String>;
                     ubicacionController.text =
                         obtenerUbicacionCafeteria(value.toString());
                   });
@@ -954,13 +960,96 @@ class _crearEventoUIState extends State<crearEventoUI> {
     return url;
   }
 
+  bool comprobarTicketsExisten(int ticketsPorDia, List<int> cantidad) {
+    bool ticketsExisten = true;
+
+    for (var i = 0; i < cantidad.length; i++) {
+      if (ticketsPorDia > cantidad[i]) {
+        ticketsExisten = false;
+      }
+    }
+
+    return ticketsExisten;
+  }
+
+  Future<void> actualizarTicketsDispo(
+      Map<String, List> ticketsDispo, String uidEvento) async {
+    await FirebaseFirestore.instance
+        .collection('eventos')
+        .doc(uidEvento)
+        .update({'ticketsDispo': ticketsDispo}).then((value) => {
+              print('tickets disponibles actualizados'),
+            });
+  }
+
+  Future<void> actualizarTicketsSeparados(Map<String, List> ticketsSeparados,
+      Map<String, List> ticketsDispo, String uidEvento) async {
+    await FirebaseFirestore.instance
+        .collection('eventos')
+        .doc(uidEvento)
+        .update({'ticketsSeparados': ticketsSeparados}).then((value) => {
+              print('tickets separados actualizados'),
+              actualizarTicketsDispo(ticketsDispo, uidEvento)
+            });
+  }
+
+  Future<void> separarTickets(
+      int cantidad, int duracion, String nombreEvento) async {
+    //buscar en la coleccion de eventos el evento con el nombre ingresado y obtener el map string list tickets
+    var tickets;
+    String uidEvento = '';
+    await FirebaseFirestore.instance
+        .collection('eventos')
+        .where('nombre', isEqualTo: nombreEvento)
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        tickets = doc['ticketsDispo'];
+        uidEvento = doc.id;
+      });
+    });
+
+    var ticketsXDia = cantidad ~/ duracion;
+    Map<String, List> ticketsSeparados = Map();
+    Map<String, List> ticketsDispo = Map();
+    //clonar el map de listas tickets en canttickets
+    tickets.forEach((key, value) {
+      var cont = 0;
+      List listaSeparados = [];
+      List listaDispo = [];
+      //recorrer value que es una lista
+      value.forEach((element) {
+        if (cont < ticketsXDia) {
+          listaSeparados.add(element);
+        } else {
+          listaDispo.add(element);
+        }
+        cont++;
+      });
+      ticketsSeparados[key] = listaSeparados;
+      ticketsDispo[key] = listaDispo;
+    });
+
+    //bool ticketsExisten = comprobarTicketsExisten(ticketsXDia, cantTickets);
+
+    print('tickets separados');
+
+    print(ticketsSeparados);
+    print('tickets disponibles');
+    ticketsDispo.forEach((key, value) {
+      print('$key: ${value.length.toString()}');
+    });
+
+    actualizarTicketsSeparados(ticketsSeparados, ticketsDispo, uidEvento);
+  }
+
   Future<void> guardarInformacion(String uidUsuario) async {
     return eventosCollection.doc().set({
       'nombre': nombreEventoController.text,
       'descripcion': descripcionController.text,
       'fecha': fechasEventoController.text,
       'ubicacion': ubicacionController.text,
-      'cafeteria': cafeteriaController.text,
+      'cafeteria': cafeteriaSeleccionada['nombre'],
       'lugar': lugarController.text,
       'capacidadMax': int.parse(capacidadMaxController.text),
       'precio': int.parse(precioController.text),
@@ -969,10 +1058,12 @@ class _crearEventoUIState extends State<crearEventoUI> {
       'comision': (obtenerIngresosEstimados() * 0.1),
       'ingresosNeto':
           (obtenerIngresosEstimados() - (obtenerIngresosEstimados() * 0.1)),
-      'tickets': constructorTickets(
+      'ticketsDispo': await constructorTickets(
           int.parse(capacidadMaxController.text), duracionEvento),
+      'ticketsSeparados': Map(),
+      'ticketsVendidos': Map(),
       'imagen': await subirImagen(),
-      'uidCafeteria': cafeteriaController.text,
+      'uidCafeteria': cafeteriaSeleccionada['id'],
       'uidComercial': uidUsuario,
       'duracion': duracionEvento,
       'estado': 'activo'
@@ -995,6 +1086,8 @@ class _crearEventoUIState extends State<crearEventoUI> {
           textSuccessBuild = 'Evento creado exitosamente';
         });
         print(textSuccessBuild);
+        await separarTickets(int.parse(entradasSeparadasController.text),
+            duracionEvento, nombreEventoController.text);
       } else {
         setState(() {
           mostrarErrorBuild = true;
@@ -1461,6 +1554,7 @@ class _crearEventoUIState extends State<crearEventoUI> {
     final ancho_pantalla = MediaQuery.of(context).size.width;
     setState(() {
       pantalla = ancho_pantalla;
+      mostrarBtnAddEvent = true;
     });
 
     if (nombreEventoController.text != '' &&
@@ -1471,24 +1565,24 @@ class _crearEventoUIState extends State<crearEventoUI> {
         entradasSeparadasController.text != '' &&
         fechasEventoController.text != '' &&
         listaImagenes.isNotEmpty) {
-      if (esLugar) {
+      if (!esLugar) {
         if (lugarController.text != '') {
           setState(() {
-            mostrarBtnAddEvent = true;
+            mostrarBtnAddEvent = false;
           });
         } else {
           setState(() {
-            mostrarBtnAddEvent = false;
+            mostrarBtnAddEvent = true;
           });
         }
       } else {
         if (cafeteriaController.text != '') {
           setState(() {
-            mostrarBtnAddEvent = true;
+            mostrarBtnAddEvent = false;
           });
         } else {
           setState(() {
-            mostrarBtnAddEvent = false;
+            mostrarBtnAddEvent = true;
           });
         }
       }
