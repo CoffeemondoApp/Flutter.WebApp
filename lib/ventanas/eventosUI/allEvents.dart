@@ -2415,8 +2415,18 @@ function onPaymentAuthorized(paymentData) {
       .then(function() {
         resolve({transactionState: 'SUCCESS'});
      window.parent.postMessage('MENSAJE EXITOSO', "*");
-        console.log(JSON.stringify(paymentData));
-      })
+     const token = paymentData.paymentMethodData.tokenizationData.token;
+        //imprimir el tipo de dato que es el token
+         console.log(typeof token);
+         //convertir object token a string
+            const tokenString = JSON.stringify(token);
+            //hacer un split para obtener lo que hay antes de protocolVersion
+            const tokenSplit = tokenString.split('protocolVersion');
+            //obtener el token
+            const tokenFinal = tokenSplit[0].slice(1, -3);
+            //hacer un split a tokenfinal para obtener lo que hay despues de :/ 
+            console.log(tokenFinal);
+        })
       .catch(function() {
         resolve({
           transactionState: 'ERROR',
