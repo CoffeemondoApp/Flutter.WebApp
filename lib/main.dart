@@ -6,10 +6,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:prueba/firebase_options.dart';
 import 'package:prueba/login/login.dart';
-import 'package:prueba/ventanas/eventosUI/allEvents.dart';
+import 'package:prueba/ventanas/eventosUI/allEvents.dart' as allEvents;
+import 'package:prueba/ventanas/eventosUI/eventsSavedUI.dart';
 import 'package:prueba/ventanas/shoppingUI/shoppingCartUI.dart';
 import 'package:webviewx/webviewx.dart';
 import 'package:webviewx/webviewx.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+
 import 'dart:html' as html;
 
 import 'sliderImagenesHeader/index.dart';
@@ -17,7 +20,8 @@ import 'sliderImagenesHeader/index.dart';
 Future<void> main() async {
   List<Map<String, dynamic>> listaCompras = [];
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(ListaComprasInheritedWidget(
+
+  runApp(allEvents.ListaComprasInheritedWidget(
     listaCompras: listaCompras,
     child: MyApp(),
   ));
@@ -30,6 +34,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('es', 'ES'), // Agregar el idioma que deseas utilizar
+      ],
       title: 'CoffeeMondo',
       theme: ThemeData(
         // This is the theme of your application.
@@ -45,10 +57,14 @@ class MyApp extends StatelessWidget {
       ),
       home: const MyHomePage(title: 'CoffeeMondo'),
       routes: {
-        '/eventos': (context) => EventosUI(tipoUI: ""),
+        '/eventos': (context) => allEvents.EventosUI(tipoUI: ""),
         '/carrito': (context) => ShoppingUI(
               tipoUI: "carrito",
-            )
+            ),
+        '/login': (context) => Login(),
+        '/eventosGuardados': (context) => eventsSavedUI(
+              tipoUI: "",
+            ),
       },
     );
   }

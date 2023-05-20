@@ -349,11 +349,12 @@ class _crearEventoUIState extends State<crearEventoUI> {
           onChanged: esLugar
               ? null
               : (value) {
-                  //poner en el controller de ubicacion el nombre de la cafeteria
+                  var valor = value as Map<String, dynamic>;
                   setState(() {
-                    cafeteriaSeleccionada = value as Map<String, String>;
                     ubicacionController.text =
-                        obtenerUbicacionCafeteria(value.toString());
+                        obtenerUbicacionCafeteria(valor['id']);
+                    print(obtenerUbicacionCafeteria(valor['id']));
+                    print(ubicacionController.text);
                   });
                 }),
     ));
