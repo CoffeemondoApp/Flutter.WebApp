@@ -116,7 +116,7 @@ class _EventosUIState extends State<EventosUI> {
     html.window.addEventListener("message", (html.Event event) {
       var listaCompras = ListaComprasInheritedWidget.of(context).listaCompras;
       // Convierte la lista de path en una cadena separada por "/"
-      String message = event.path.map((e) => e.toString()).join("/");
+
       // Muestra un dialog en caso de éxito
       ArtSweetAlert.show(
               context: context,
@@ -134,7 +134,6 @@ class _EventosUIState extends State<EventosUI> {
         });
       });
       // Muestra el mensaje en la consola
-      print("Mensaje recibido desde JavaScript: $message");
     });
 
     try {
@@ -148,6 +147,7 @@ class _EventosUIState extends State<EventosUI> {
     } catch (e) {
       print(e);
     }
+    obtenerEventosGuardados();
   }
 
   var dispositivo = '';
@@ -770,7 +770,7 @@ class _EventosUIState extends State<EventosUI> {
             ),
           ),
           Image.asset(
-            'mercadopago.png',
+            'assets/mercadopago.png',
             width: 35,
           ),
         ]),
@@ -897,7 +897,7 @@ class _EventosUIState extends State<EventosUI> {
                                                         .spaceBetween,
                                                 children: [
                                                   Image.asset(
-                                                    'logo.png',
+                                                    'assets/logo.png',
                                                     width: 30,
                                                   ),
                                                   Container(
@@ -1874,6 +1874,12 @@ class _EventosUIState extends State<EventosUI> {
   }
 
   Widget moduloFecha(String fecha) {
+    List<String> separarFecha = fecha.split(' - ');
+    if (separarFecha[0] == separarFecha[1]) {
+      fecha = separarFecha[0];
+    } else {
+      fecha = fecha;
+    }
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -1986,6 +1992,9 @@ class _EventosUIState extends State<EventosUI> {
         }
       },
       onTap: () {
+        print('Guardar evento');
+        print('$tipo');
+        print(eventosGuardados);
         if (tipo == 'Guardar evento') {
           eventosGuardados.contains(UidEvento)
               ? borrarFavoritos(UidEvento)
@@ -2044,7 +2053,12 @@ class _EventosUIState extends State<EventosUI> {
           ),
           btnEvento(Icons.map_outlined, 'Mapa', nombre, uid),
           btnEvento(
-              Icons.favorite_border_outlined, "Guardar reseña", nombre, uid)
+              eventosGuardados.contains(uid)
+                  ? Icons.favorite
+                  : Icons.favorite_border_outlined,
+              "Guardar evento",
+              nombre,
+              uid)
         ],
       ),
     );
@@ -2063,7 +2077,7 @@ class _EventosUIState extends State<EventosUI> {
       docRef.update({
         'eventosGuardados': FieldValue.arrayUnion([UidEvento])
       });
-      print('Ingreso de informacion exitoso.');
+      print('Evento $UidEvento agregado con exito a favoritos');
       obtenerEventosGuardados();
       // Una vez actualizada la informacion, se devuelve a InfoUser para mostrar su nueva informacion
     } catch (e) {
@@ -2071,11 +2085,11 @@ class _EventosUIState extends State<EventosUI> {
     }
   }
 
-  Future<void> borrarFavoritos(String uidResena) async {
+  Future<void> borrarFavoritos(String uidEvento) async {
     try {
       // Importante: Este tipo de declaracion se utiliza para solamente actualizar la informacion solicitada y no manipular informacion adicional, como lo es la imagen y esto permite no borrar otros datos importantes
       User? user = FirebaseAuth.instance.currentUser;
-      print(uidResena);
+      print(uidEvento);
       print(eventosGuardados);
       // Se busca la coleccion 'users' de la BD de Firestore en donde el uid sea igual al del usuario actual
       final DocumentReference docRef =
@@ -2083,14 +2097,23 @@ class _EventosUIState extends State<EventosUI> {
       // Se actualiza la informacion del usuario actual mediante los controladores, que son los campos de informacion que el usuario debe rellenar
 
       docRef.update({
-        'eventosGuardados': FieldValue.arrayRemove([uidResena])
+        'eventosGuardados': FieldValue.arrayRemove([uidEvento])
       });
-      print('Ingreso de informacion exitoso.');
+      print('Evento $uidEvento borrado de favoritos.');
       obtenerEventosGuardados();
       // Una vez actualizada la informacion, se devuelve a InfoUser para mostrar su nueva informacion
     } catch (e) {
       print("Error al intentar ingresar informacion");
     }
+  }
+
+  Future<String> obtenerUidEvento(String nombre) {
+    var firestore = FirebaseFirestore.instance;
+    return firestore
+        .collection('eventos')
+        .where('nombre', isEqualTo: nombre)
+        .get()
+        .then((value) => value.docs.first.id);
   }
 
   Future<List<dynamic>?> obtenerEventosGuardados() async {
@@ -2132,6 +2155,7 @@ class _EventosUIState extends State<EventosUI> {
             ),
             items: cafeteriasDataList.asMap().entries.map((entry) {
               int index = entry.key;
+              String uidEvento = entry.value["id"] ?? "";
               String nombre = entry.value["nombre"] ?? "";
               String urlImagen = entry.value["imagen"] ?? "";
               String cafeteria = entry.value["cafeteria"] ?? "";
@@ -2159,7 +2183,27 @@ class _EventosUIState extends State<EventosUI> {
                         height: 236,
                         child: Column(
                           children: [
-                            Expanded(child: moduloInformacion(descripcion)),
+                            Expanded(
+                                child: Column(children: [
+                              moduloInformacion(descripcion),
+                              Container(
+                                margin: EdgeInsets.only(top: 10),
+                                child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.event_outlined,
+                                          color: colorMorado, size: 20),
+                                      Container(
+                                        margin: EdgeInsets.only(left: 5),
+                                        child: Text(nombre,
+                                            style: TextStyle(
+                                                color: colorMorado,
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                    ]),
+                              ),
+                            ])),
                             Expanded(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.end,
@@ -2171,7 +2215,7 @@ class _EventosUIState extends State<EventosUI> {
                                   ),
                                   btnsEvento(
                                       'Nombre del evento',
-                                      'Creador del evento',
+                                      uidEvento,
                                       'ID del evento',
                                       _eventoSeleccionado,
                                       entry.value)
@@ -2799,16 +2843,16 @@ function processPayment(paymentData) {
     int precioUnitario = 100;
     _total = 0; // reiniciar la variable _total
 
-    listaCompras.forEachIndexed((index, compra) {
-      // utilizar forEachIndexed en lugar de forEach
+    listaCompras.asMap().forEach((index, compra) {
       if (compra == null || compra.isEmpty) {
         return;
       }
-      compra = listaCompras[index]['compra${index + 1}'];
-      var cantidad = int.parse(compra['cantidad'] ?? '1');
-      var precioTotal = cantidad * int.parse(compra["precio"]);
+      var cantidad = int.parse(compra['compra${index + 1}']['cantidad'] ?? '1');
+      var precioTotal =
+          cantidad * int.parse(compra['compra${index + 1}']['precio']);
       _total += precioTotal; // agregar el precio total al total
     });
+
     return Dialog(
       child: Container(
         color: colorScaffold,
@@ -2816,7 +2860,7 @@ function processPayment(paymentData) {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: MediaQuery.of(context).size.width / 3,
+              width: MediaQuery.of(context).size.width / 3.5,
               height: 100,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(2)),
@@ -2844,269 +2888,88 @@ function processPayment(paymentData) {
             SizedBox(height: 10),
             SingleChildScrollView(
               child: Container(
-                color: colorScaffold,
-                width: MediaQuery.of(context).size.width / 3,
-                height: 207,
-                margin: EdgeInsets.only(bottom: 10),
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: colorScaffold,
-                        ),
-                        child: Row(
-                          children: [
-                            Column(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
+                width: MediaQuery.of(context).size.width / 3.5,
+                height: MediaQuery.of(context).size.height / 8,
+                child: SingleChildScrollView(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: listaCompras.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final compra = listaCompras[index]['compra${index + 1}'];
+
+                      int cantidad = int.parse(compra['cantidad'] ?? '1');
+                      int precio = int.parse(compra['precio']);
+
+                      void incrementarCantidad() {
+                        setState(() {
+                          cantidad++;
+                          listaCompras[index]['compra${index + 1}']
+                              ['cantidad'] = cantidad.toString();
+                        });
+                      }
+
+                      void decrementarCantidad() {
+                        setState(() {
+                          if (cantidad > 1) {
+                            cantidad--;
+                            listaCompras[index]['compra${index + 1}']
+                                ['cantidad'] = cantidad.toString();
+                          }
+                        });
+                      }
+
+                      return Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(compra['eventoNombre']),
+                              Text(DateFormat('dd/MM/yyyy')
+                                  .format(compra['fecha'].toLocal())),
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.remove),
+                                    onPressed: decrementarCantidad,
                                   ),
-                                  width:
-                                      MediaQuery.of(context).size.width / 3.3,
-                                  height: 165,
-                                  margin: EdgeInsets.only(bottom: 10),
-                                  child: ListView(
-                                    physics: AlwaysScrollableScrollPhysics(),
-                                    children: [
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      listaCompras.isNotEmpty
-                                          ? ListView.builder(
-                                              shrinkWrap: true,
-                                              itemCount: listaCompras.length,
-                                              itemBuilder:
-                                                  (BuildContext context,
-                                                      int index) {
-                                                final compra =
-                                                    listaCompras[index]
-                                                        ['compra${index + 1}'];
-                                                if (compra == null ||
-                                                    compra.isEmpty) {
-                                                  return SizedBox();
-                                                }
-
-                                                // Obtener la cantidad actual del artículo
-                                                final cantidad = int.parse(
-                                                    compra['cantidad'] ?? '1');
-
-                                                var precioTotal = cantidad *
-                                                    int.parse(compra['precio']);
-                                                /* 1 *100 = 100
-                                  2* 100 = 200
-                                  total = total + precio total
-                                    100      0      100
-                                    300         100   + 200
-                                            300        300
-                                    
-                                   */
-
-                                                return Expanded(
-                                                  child: Column(
-                                                    children: [
-                                                      SizedBox(
-                                                        height: 5,
-                                                      ),
-                                                      Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceBetween,
-                                                        children: [
-                                                          Expanded(
-                                                            child: Text(
-                                                              compra!['eventoNombre'] ??
-                                                                  '',
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                              style: TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold),
-                                                            ),
-                                                          ),
-                                                          SizedBox(
-                                                            width: 120,
-                                                            child: Text(
-                                                                DateFormat(
-                                                                        'dd/MM/yyyy')
-                                                                    .format(
-                                                                  compra['fecha']
-                                                                          ?.toLocal() ??
-                                                                      DateTime
-                                                                          .now(),
-                                                                ),
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                style: TextStyle(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold)),
-                                                          ),
-                                                          Expanded(
-                                                            child: SizedBox(
-                                                              width: 100,
-                                                              child: Wrap(
-                                                                spacing: 10,
-                                                                children: [
-                                                                  Row(
-                                                                    children: [
-                                                                      IconButton(
-                                                                        icon: Icon(
-                                                                            Icons.remove),
-                                                                        onPressed:
-                                                                            () {
-                                                                          setState(
-                                                                              () {
-                                                                            if (cantidad >
-                                                                                1) {
-                                                                              listaCompras[index]['compra${index + 1}']!['cantidad'] = (cantidad - 1).toString();
-                                                                              _total -= int.parse(compra['precio']);
-                                                                              print(listaCompras);
-                                                                            } else {
-                                                                              listaCompras[index]['compra${index + 1}']!['cantidad'] = '1';
-                                                                            }
-                                                                            if (listaCompras.isEmpty) {
-                                                                              listaCompras = [];
-                                                                            }
-                                                                          });
-                                                                        },
-                                                                      ),
-                                                                      Text(
-                                                                        '$cantidad',
-                                                                        style: TextStyle(
-                                                                            fontSize:
-                                                                                18,
-                                                                            fontWeight:
-                                                                                FontWeight.bold),
-                                                                      ),
-                                                                      IconButton(
-                                                                        icon: Icon(
-                                                                            Icons.add),
-                                                                        onPressed:
-                                                                            () {
-                                                                          setState(
-                                                                              () {
-                                                                            listaCompras[index]['compra${index + 1}']!['cantidad'] =
-                                                                                (cantidad + 1).toString();
-                                                                            _total +=
-                                                                                int.parse(compra['precio']);
-                                                                            print(listaCompras);
-
-                                                                            print(_total);
-                                                                          });
-                                                                        },
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          Expanded(
-                                                            child: Text(
-                                                                '\$${precioTotal.toString()}',
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                style: TextStyle(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold)),
-                                                          ),
-                                                          IconButton(
-                                                            icon: Icon(
-                                                                Icons.delete),
-                                                            onPressed: () {
-                                                              setState(() {
-                                                                if (index ==
-                                                                    listaCompras
-                                                                            .length -
-                                                                        1) {
-                                                                  listaCompras
-                                                                      .removeAt(
-                                                                          index);
-                                                                } else {
-                                                                  // Actualiza los nombres de las compras
-                                                                  for (int i =
-                                                                          index +
-                                                                              1;
-                                                                      i <
-                                                                          listaCompras
-                                                                              .length;
-                                                                      i++) {
-                                                                    listaCompras[
-                                                                            i][
-                                                                        'compra${i}'] = listaCompras[
-                                                                            i]
-                                                                        .remove(
-                                                                            'compra${i + 1}');
-                                                                  }
-                                                                  listaCompras
-                                                                      .removeAt(
-                                                                          index);
-                                                                }
-                                                                print(
-                                                                    listaCompras);
-                                                                contadorCompras--;
-                                                              });
-                                                            },
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      Divider(),
-                                                    ],
-                                                  ),
-                                                );
-                                              })
-                                          : Center(
-                                              child: Text(
-                                                'No hay compras en tu carrito',
-                                                style: TextStyle(fontSize: 20),
-                                              ),
-                                            ),
-                                      Expanded(
-                                        child: SizedBox(),
-                                      ),
-                                    ],
+                                  Text(cantidad.toString()),
+                                  IconButton(
+                                    icon: Icon(Icons.add),
+                                    onPressed: incrementarCantidad,
                                   ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              width: 5,
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
+                                ],
+                              ),
+                              Text('\$${cantidad * precio}'),
+                            ],
+                          ),
+                          Divider(),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ),
             ),
+            SizedBox(height: 10),
+            Text('Total: \$$_total'),
+            SizedBox(height: 10),
             SizedBox(
-              width: MediaQuery.of(context).size.width / 3,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    mostrarGridImagenes = false;
-                    mostrarDatosUsuario = true;
-                    Navigator.pop(context);
-                  });
-                },
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(colorMorado),
-                ),
-                child: Text('Continuar con mi pedido'),
-              ),
-            ),
+                width: MediaQuery.of(context).size.width / 3.5,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      mostrarGridImagenes = false;
+                      mostrarDatosUsuario = true;
+                      Navigator.pop(context);
+                    });
+                  },
+                  style: ButtonStyle(
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(colorMorado),
+                  ),
+                  child: Text('Continuar con mi pedido'),
+                ))
           ],
         ),
       ),

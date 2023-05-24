@@ -843,6 +843,7 @@ class _HeaderState extends State<Header> {
         cerrarVision();
         cerrarData();
         cerrarLogin();
+        cerrarModuloEventos('Eventos');
         disparadorCerrarSidebar();
       }
     }
@@ -1371,70 +1372,84 @@ class _HeaderState extends State<Header> {
                                         duration: Duration(milliseconds: 500),
                                         child: Login(),
                                       )
-                                    : openAllEvents
+                                    : openMyEvents
                                         ? AnimatedOpacity(
-                                            opacity: openAllEvents2 ? 1 : 0,
+                                            opacity: openMyEvents2 ? 1 : 0,
                                             duration:
                                                 Duration(milliseconds: 500),
-                                            child: EventosUI(
+                                            child: misEventosUI(
                                               tipoUI: eventsUI,
                                             ),
                                           )
-                                        : openSavedEvents
+                                        : openAllEvents
                                             ? AnimatedOpacity(
-                                                opacity:
-                                                    openSavedEvents2 ? 1 : 0,
+                                                opacity: openAllEvents2 ? 1 : 0,
                                                 duration:
                                                     Duration(milliseconds: 500),
-                                                child: eventsSavedUI(
+                                                child: EventosUI(
                                                   tipoUI: eventsUI,
                                                 ),
                                               )
-                                            : openVision
+                                            : openSavedEvents
                                                 ? AnimatedOpacity(
-                                                    opacity:
-                                                        openVision2 ? 1 : 0,
+                                                    opacity: openSavedEvents2
+                                                        ? 1
+                                                        : 0,
                                                     duration: Duration(
                                                         milliseconds: 500),
-                                                    child: VisionUI(),
+                                                    child: eventsSavedUI(
+                                                      tipoUI: eventsUI,
+                                                    ),
                                                   )
-                                                : openCrearEvento
+                                                : openVision
                                                     ? AnimatedOpacity(
                                                         opacity:
-                                                            openCrearEvento2
-                                                                ? 1
-                                                                : 0,
+                                                            openVision2 ? 1 : 0,
                                                         duration: Duration(
                                                             milliseconds: 500),
-                                                        child: crearEventoUI(
-                                                          tipoUI: '',
-                                                        ))
-                                                    : openShoppingCart
+                                                        child: VisionUI(),
+                                                      )
+                                                    : openCrearEvento
                                                         ? AnimatedOpacity(
                                                             opacity:
-                                                                openShoppingCart2
+                                                                openCrearEvento2
                                                                     ? 1
                                                                     : 0,
                                                             duration: Duration(
                                                                 milliseconds:
                                                                     500),
-                                                            child: ShoppingUI(
-                                                              tipoUI:
-                                                                  shoppingUI,
-                                                            ),
-                                                          )
-                                                        : openData
+                                                            child:
+                                                                crearEventoUI(
+                                                              tipoUI: '',
+                                                            ))
+                                                        : openShoppingCart
                                                             ? AnimatedOpacity(
                                                                 opacity:
-                                                                    openData2
+                                                                    openShoppingCart2
                                                                         ? 1
                                                                         : 0,
                                                                 duration: Duration(
                                                                     milliseconds:
                                                                         500),
-                                                                child: DataUI(),
+                                                                child:
+                                                                    ShoppingUI(
+                                                                  tipoUI:
+                                                                      shoppingUI,
+                                                                ),
                                                               )
-                                                            : Container(),
+                                                            : openData
+                                                                ? AnimatedOpacity(
+                                                                    opacity:
+                                                                        openData2
+                                                                            ? 1
+                                                                            : 0,
+                                                                    duration: Duration(
+                                                                        milliseconds:
+                                                                            500),
+                                                                    child:
+                                                                        DataUI(),
+                                                                  )
+                                                                : Container(),
         Row(
           children: [
             containerSideBar(),

@@ -194,7 +194,7 @@ class cardTemplate extends StatelessWidget {
                       width: MediaQuery.of(context).size.width * 0.4,
                       margin: EdgeInsets.only(right: 20),
                       child: Text(
-                        'A tan solo ${numberFormat.format(int.parse(title3))} pesos',
+                        'Valor: ${numberFormat.format(int.parse(title3))} pesos',
                         textAlign: TextAlign.right,
                         style: TextStyle(
                           color: colorMorado,

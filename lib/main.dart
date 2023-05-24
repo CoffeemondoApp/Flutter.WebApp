@@ -7,24 +7,27 @@ import 'package:flutter/material.dart';
 import 'package:prueba/firebase_options.dart';
 import 'package:prueba/login/login.dart';
 import 'package:prueba/ventanas/eventosUI/allEvents.dart' as allEvents;
-import 'package:prueba/ventanas/eventosUI/eventsSavedUI.dart';
 import 'package:prueba/ventanas/shoppingUI/shoppingCartUI.dart';
 import 'package:webviewx/webviewx.dart';
 import 'package:webviewx/webviewx.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-
 import 'dart:html' as html;
+import 'package:prueba/ventanas/eventosUI/eventsSavedUI.dart' as eventsSaved;
 
 import 'sliderImagenesHeader/index.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future<void> main() async {
   List<Map<String, dynamic>> listaCompras = [];
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  runApp(allEvents.ListaComprasInheritedWidget(
-    listaCompras: listaCompras,
-    child: MyApp(),
-  ));
+  runApp(
+    allEvents.ListaComprasInheritedWidget(
+      listaCompras: listaCompras,
+      child: eventsSaved.ListaComprasInheritedWidget(
+        listaCompras: listaCompras,
+        child: MyApp(),
+      ),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -60,11 +63,7 @@ class MyApp extends StatelessWidget {
         '/eventos': (context) => allEvents.EventosUI(tipoUI: ""),
         '/carrito': (context) => ShoppingUI(
               tipoUI: "carrito",
-            ),
-        '/login': (context) => Login(),
-        '/eventosGuardados': (context) => eventsSavedUI(
-              tipoUI: "",
-            ),
+            )
       },
     );
   }
@@ -118,16 +117,6 @@ class _MyHomePageState extends State<MyHomePage> {
   late WebViewXController webviewController;
   @override
   Widget build(BuildContext context) {
-    html.window.addEventListener("message", (html.Event event) {
-      // Convierte la lista de path en una cadena separada por "/"
-      String message = event.path.map((e) => e.toString()).join("/");
-      // Muestra un dialog en caso de éxito
-      // Muestra el mensaje en la consola
-      print("Mensaje recibido desde JavaScript: $message");
-
-      setState(() {});
-    });
-
     bool usuarioExiste = currentUser != null;
     final ancho_pantalla = MediaQuery.of(context).size.width;
     setState(() {
@@ -153,69 +142,6 @@ class _MyHomePageState extends State<MyHomePage> {
               fit: BoxFit.cover,
             ),
           ],
-        ),
-        Positioned(
-          bottom: 0,
-          right: 0,
-          child: Container(
-            width: dispositivo == "PC"
-                ? MediaQuery.of(context).size.width / 4
-                : MediaQuery.of(context).size.width,
-            height: dispositivo == "PC"
-                ? MediaQuery.of(context).size.height * 0.8
-                : 200,
-            child: Positioned(
-                bottom: 0,
-                right: 0,
-                child: WebViewX(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
-                  initialContent: '''
-                <html lang="es">
-            <head>
-              <link rel="stylesheet" href="main.css">
-              <meta charset="utf-8">
-              <title></title>
-            </head>
-            <body>
-              <script src="https://www.gstatic.com/dialogflow-console/fast/messenger-cx/bootstrap.js?v=1"></script>
-            <df-messenger df-cx="true" location="us-central1" chat-title="Agente Virtual de CoffeeMondo ☕" agent-id="aeee7fab-0176-4d4f-8bd5-c1f2c7298ea0" language-code="es" chat-icon="assets/logo.png">
-            </df-messenger>
-              <script>
-            window.addEventListener('dfMessengerLoaded', function (event) {
-                const dfMessenger = document.querySelector('df-messenger');
-                const openText = ('¡Hola, bienvenid@! ¿Deseas interactuar con nuestro agente virtual: Mondo Bot?');
-            dfMessenger.renderCustomText(openText);
-            });
-            
-              </script>
-              
-              <script>
-                const dfMessenger = document.querySelector('df-messenger');
-                dfMessenger.addEventListener('event-type', function (event) {
-            
-                });
-              </script>
-              <h1></h1>
-            </body>
-            <style>
-              df-messenger {
-               --df-messenger-bot-message: #FF4F34ff;
-               --df-messenger-button-titlebar-color: #FF4F34ff;
-               --df-messenger-chat-background-color: #603D8Dff;
-               --df-messenger-font-color: white;
-               --df-messenger-send-icon: #FF4F34ff;
-               --df-messenger-user-message: #D7432Cff;
-              }
-            </style>
-          </html>
-          
-              ''',
-                  initialSourceType: SourceType.html,
-                  onWebViewCreated: (controller) =>
-                      webviewController = controller,
-                )),
-          ),
         ),
       ]),
     ));
