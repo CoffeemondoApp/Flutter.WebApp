@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:html' as html;
 import 'dart:ui';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart';
 
 import 'package:js/js.dart';
 
@@ -726,33 +727,60 @@ class _ShoppingUIState extends State<ShoppingUI> {
   }
 
   String nombreEventoActual = "";
+  final Map<String, Object> preference = {
+    "payment_methods": {
+      "excluded_payment_methods": [{}],
+      "excluded_payment_types": [{}]
+    },
+    "shipments": {
+      "free_methods": [{}],
+      "receiver_address": {}
+    },
+    "back_urls": {
+      "success": "http://localhost:8080/feedback",
+      "failure": "http://localhost:8080/feedback",
+      "pending": "http://localhost:8080/feedback"
+    },
+    "auto_return": "approved",
+    "differential_pricing": {},
+    "metadata": {}
+  };
 
   Future<Map<String, dynamic>> armarPreferencia() async {
-    var preference = {
-      "items": [
-        {
-          'title': 'Mi producto',
-          'quantity': 1,
-          'currency_id': 'CLP',
-          'unit_price': 1000
-        },
-        {
-          'title': 'Mi producto 2',
-          'quantity': 2,
-          'currency_id': 'CLP',
-          'unit_price': 1000
-        }
-      ],
-    };
+    var result = await post(
+      Uri.parse('https://api.mercadopago.com/checkout/preferences'),
+      headers: {
+        'Authorization':
+            'Bearer TEST-5628190965592398-030506-bc0858e80721d7c4e108cc51640b092f-514191793',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(preference),
+    );
 
-    var result = await mp.createPreference(preference);
-
-    return result;
+    return jsonDecode(result.body);
   }
 
   Future<void> dispararCheckout() async {
+    setState(() {
+      preference["items"] = [
+        {
+          "title": nombreEventoActual,
+          "description": "Compra de entrada",
+          "quantity": 1,
+          "currency_id": "CLP",
+          "unit_price": 1000
+        }
+      ];
+      preference["payer"] = {
+        "name": "Lalo",
+        "surname": "Landa",
+        "email": "cvasquezc99@gmail.com"
+      };
+    });
+    var listaCompras = ListaComprasInheritedWidget.of(context).listaCompras;
+    print(listaCompras);
     var result = await armarPreferencia();
-    print(result['response']);
+    print(result);
   }
 
   Widget btnEvento(

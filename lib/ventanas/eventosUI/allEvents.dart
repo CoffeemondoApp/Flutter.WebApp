@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_launcher_icons/xml_templates.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:http/http.dart';
 import 'package:image_network/image_network.dart';
 import 'package:mercadopago_sdk/mercadopago_sdk.dart';
 import 'package:prueba/sliderImagenesHeader/index.dart';
@@ -750,30 +751,33 @@ class _EventosUIState extends State<EventosUI> {
   }
 
   Widget btnMercadoPago() {
-    return (Container(
-      width: 900,
-      decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(2)),
-      margin: EdgeInsets.symmetric(vertical: 10),
+    return (InkWell(
+      onTap: () => dispararCheckout(),
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 5),
-        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Container(
-            margin: EdgeInsets.only(right: 25),
-            child: Text(
-              'Comprar con ',
-              style: TextStyle(
-                  color: Color.fromARGB(255, 0, 191, 255),
-                  fontSize: 20,
-                  fontWeight: FontWeight.w300,
-                  fontFamily: 'Tahoma Normal'),
+        width: 900,
+        decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(2)),
+        margin: EdgeInsets.symmetric(vertical: 10),
+        child: Container(
+          margin: EdgeInsets.symmetric(vertical: 5),
+          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Container(
+              margin: EdgeInsets.only(right: 25),
+              child: Text(
+                'Comprar con ',
+                style: TextStyle(
+                    color: Color.fromARGB(255, 0, 191, 255),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w300,
+                    fontFamily: 'Tahoma Normal'),
+              ),
             ),
-          ),
-          Image.asset(
-            'assets/mercadopago.png',
-            width: 35,
-          ),
-        ]),
+            Image.asset(
+              'assets/mercadopago.png',
+              width: 35,
+            ),
+          ]),
+        ),
       ),
     ));
   }
@@ -1920,61 +1924,71 @@ class _EventosUIState extends State<EventosUI> {
   CollectionReference _collectionRefOrden =
       FirebaseFirestore.instance.collection('ordenesDeCompra');
 
+  final Map<String, Object> preference = {
+    "payment_methods": {
+      "excluded_payment_methods": [{}],
+      "excluded_payment_types": [{}]
+    },
+    "shipments": {
+      "free_methods": [{}],
+      "receiver_address": {}
+    },
+    "back_urls": {
+      "success": "http://localhost:8080/feedback",
+      "failure": "http://localhost:8080/feedback",
+      "pending": "http://localhost:8080/feedback"
+    },
+    "auto_return": "approved",
+    "differential_pricing": {},
+    "metadata": {}
+  };
+
   Future<Map<String, dynamic>> armarPreferencia() async {
+    var result = await post(
+      Uri.parse('https://api.mercadopago.com/checkout/preferences'),
+      headers: {
+        'Authorization':
+            'Bearer TEST-5628190965592398-030506-bc0858e80721d7c4e108cc51640b092f-514191793',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(preference),
+    );
+
+    return jsonDecode(result.body);
+  }
+
+  Future<void> generarItems() async {
     var listaCompras = ListaComprasInheritedWidget.of(context).listaCompras;
-    var firestore = FirebaseFirestore.instance;
-    final user = FirebaseAuth.instance.currentUser;
-
-    // Crear una nueva referencia al documento y guardarlo en una variable
-    listaCompras.forEachIndexed((index, compra) {
-      // Crear una nueva referencia al documento y guardarlo en una variable
-      final DocumentReference nuevaOrdenRef =
-          FirebaseFirestore.instance.collection("ordenesDeCompra").doc();
-      compra = listaCompras[index]['compra${index + 1}'];
-
-      // Guardar los datos en el nuevo documento
-      Map<String, dynamic> datosCompra = {
-        'EstadoOrden': "pendiente",
-        'Tickets': "PRUEBA APELLIDO 22",
-        'eventoUsuario': {
-          'apellido': compra['apellido'],
-          'cantidadEntradas': compra['cantidad'],
-          'fechaEvento': compra['fecha'],
-          'idEvento': compra['eventoId'],
-          'nombre': compra['nombre'],
-          'nombreEvento': compra['eventoNombre'],
-          'precioEntrada': "double.parse(compra['precioEntrada'])",
-          'rut': compra['rut'],
-          'telefono': compra["telefono"],
-          'ubicacionEvento': "compra['ubicacionEvento']",
-          'userID': user.toString(), // User ID funcionando
-        }
-      };
-
-      nuevaOrdenRef.set(datosCompra);
-    });
     print(listaCompras);
-    var items = [];
-    listaCompras.forEach((compra) {
-      var item = {
-        'title': "compra['eventoNombre']",
-        'quantity': 1,
-        'currency_id': 'COP',
-        'unit_price': 100.00,
-      };
-      items.add(item);
+    print(listaCompras.length);
+    List<Map<String, dynamic>> listaProductos = [];
+    int iCompra = 1;
+
+    for (var compra in listaCompras) {
+      print('Compra $iCompra');
+      Map<String, dynamic> dataCompra = compra['compra$iCompra'];
+      print(dataCompra);
+
+      listaProductos.add({
+        "title": dataCompra['eventoNombre'],
+        "description": "Entradas a evento ${dataCompra['eventoNombre']}",
+        "picture_url": "http://www.myapp.com/myimage.jpg",
+        "category_id": "entradas",
+        "quantity": dataCompra['cantidad'],
+        "currency_id": "CLP",
+        "unit_price": dataCompra['precio']
+      });
+      iCompra++;
+    }
+    print(listaProductos);
+    setState(() {
+      preference['items'] = listaProductos;
     });
-
-    var preference = {"items": items};
-
-    var result = await mp.createPreference(preference);
-
-    return result;
   }
 
   Future<void> dispararCheckout() async {
-    var result = await armarPreferencia();
-    print(result['response']);
+    await generarItems();
+    armarPreferencia();
   }
 
   Widget btnEvento(

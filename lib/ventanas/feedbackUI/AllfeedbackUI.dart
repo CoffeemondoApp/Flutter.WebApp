@@ -29,7 +29,7 @@ class AllResenasUI extends StatefulWidget {
 
 class _AllResenasUIState extends State<AllResenasUI> {
   var mp = MP.fromAccessToken(
-      "APP_USR-5628190965592398-030506-4649ac8ad6a15c50d59f6d038364bf70-514191793");
+      "TEST-5628190965592398-030506-bc0858e80721d7c4e108cc51640b092f-514191793");
   var colorScaffold = Color(0xffffebdcac);
   var colorNaranja = Color.fromARGB(255, 255, 79, 52);
   var colorMorado = Color.fromARGB(0xff, 0x52, 0x01, 0x9b);
@@ -216,44 +216,53 @@ class _AllResenasUIState extends State<AllResenasUI> {
   }
 
   final Map<String, Object> preference = {
-    'items': [
+    "items": [
       {
-        'title': 'Test Product',
-        'description': 'Description',
-        'quantity': 3,
-        'currency_id': 'ARS',
-        'unit_price': 1500,
+        "title": "Dummy Title",
+        "description": "Dummy description",
+        "picture_url": "http://www.myapp.com/myimage.jpg",
+        "category_id": "car_electronics",
+        "quantity": 1,
+        "currency_id": "CLP",
+        "unit_price": 10
       }
     ],
-    'payer': {'name': 'Buyer G.', 'email': 'test@gmail.com'},
+    "payer": {"phone": {}, "identification": {}, "address": {}},
+    "payment_methods": {
+      "excluded_payment_methods": [{}],
+      "excluded_payment_types": [{}]
+    },
+    "shipments": {
+      "free_methods": [{}],
+      "receiver_address": {}
+    },
+    "back_urls": {
+      "success": "http://localhost:8080/feedback",
+      "failure": "http://localhost:8080/feedback",
+      "pending": "http://localhost:8080/feedback"
+    },
+    "auto_return": "approved",
+    "differential_pricing": {},
+    "metadata": {}
   };
 
   Future<Map<String, dynamic>> armarPreferencia() async {
-    var preference = {
-      "items": [
-        {
-          'title': 'Mi producto',
-          'quantity': 1,
-          'currency_id': 'CLP',
-          'unit_price': 1000
-        },
-        {
-          'title': 'Mi producto 2',
-          'quantity': 2,
-          'currency_id': 'CLP',
-          'unit_price': 1000
-        }
-      ],
-    };
+    var result = await post(
+      Uri.parse('https://api.mercadopago.com/checkout/preferences'),
+      headers: {
+        'Authorization':
+            'Bearer TEST-5628190965592398-030506-bc0858e80721d7c4e108cc51640b092f-514191793',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(preference),
+    );
 
-    var result = await mp.createPreference(preference);
-
-    return result;
+    return jsonDecode(result.body);
   }
 
   Future<void> dispararCheckout() async {
     var result = await armarPreferencia();
-    print(result['response']);
+    print(result);
   }
 
   Widget btnResena(
@@ -277,7 +286,7 @@ class _AllResenasUIState extends State<AllResenasUI> {
               : subirFavoritos(UidResena);
         } else if (tipo == 'Web') {
           print("esto pasa");
-          //dispararCheckout();
+          dispararCheckout();
         }
       },
       child: Container(
